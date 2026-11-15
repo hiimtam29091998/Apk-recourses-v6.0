@@ -1,3 +1,5 @@
+LƯU Ý: Đây là tài liệu lưu trữ của bản v7.0, số 15 lượt/Chợ và các kết quả cũ KHÔNG áp dụng cho v7.1 FINAL. Xem README_VI.md và TEST_STATUS_v7_1.txt.
+
 # Hướng dẫn nâng cấp v6.1 -> v7.0
 
 - Sao lưu JSON trong giao diện trước khi cập nhật.

@@ -18,7 +18,8 @@ TECH={'date':'Ngày','month':'Tháng','event':'Sự kiện','type':'Loại','act
 'core_total':'Sự kiện tuần được hoàn thành','silver_event_spent':'Bạc chi sự kiện',
 'quartz_total':'Đá tím có thể sử dụng','quartz_spent':'Đá chi','mission':'Liên minh','workshop':'Xưởng',
 'index':'Tuần','weekday':'Thứ','core_planned':'Cốt lõi','bonus_planned':'Chợ thêm',
-'completion_date':'Hoàn thành ngày','purchase_days':'Số ngày mua','income_quartz':'Thu đá'}
+'completion_date':'Hoàn thành ngày','purchase_days':'Số ngày mua','income_quartz':'Thu đá',
+'bonus_limit':'marketBonusLimitLabel','bonus_per_market_max':'marketBonusLimitLabel'}
 SHEETS={'Tong quan':['Tổng quan','Overview','總覽','概要'],
 'Lich su kien':['Lịch sự kiện','Event Schedule','活動日程','イベント予定'],
 'Giao dich theo ngay':['Giao dịch theo ngày','Daily Trades','每日交易','日別取引'],

@@ -1,8 +1,17 @@
-# KHOÁNG THẠCH MOBILE V7.0 | Android offline + HiGHS WebAssembly
+KHOÁNG THẠCH v7.1 FINAL · CHỢ LẤP LÁNH: 6 × 5.000 BẠC CỐT LÕI + TỐI ĐA 12 × 10.000 BẠC BỔ SUNG = 150.000 BẠC/KỲ.
+
+# KHOÁNG THẠCH MOBILE v7.1 FINAL | Android offline + HiGHS WebAssembly
 
 **Trạng thái:** Mã nguồn và kiểm thử trên môi trường xây dựng đã chuẩn bị. **Chưa có APK được biên dịch và xác minh trên thiết bị** trong môi trường này. GitHub Actions sẽ tải gói HiGHS WebAssembly và biên dịch APK.
 
-## Thay đổi so với v6.1
+## Quy tắc Chợ lấp lánh trong v7.1 FINAL
+
+- Mỗi lần Chợ: **6 lượt cốt lõi × 5.000 bạc** + **tối đa 12 lượt bổ sung × 10.000 bạc**.
+- **Tổng chi phí tối đa 150.000 bạc/lần Chợ**. Số lượt bổ sung của 19 kỳ là **228/228** nếu mua đủ.
+- Với hồ sơ mặc định (9.052 đá đầu kỳ, boss 5,82G) trong 16/11/2026–30/04/2028: **76/76 cốt lõi, 228/228 lượt Chợ, 205.000 vàng, 3.604 đá cuối kỳ**. Với hồ sơ Tâm (9.650 đá, boss 5,92G): **206.000 vàng, 3.322 đá cuối kỳ**. Các kết quả trên đã xác minh bằng Python SciPy và JS mô hình với bộ giải SciPy.
+- Các ảnh và dữ liệu **v6/v7 cũ ghi 15 lượt/Chợ không còn áp dụng**. Số lượt đã mua trước ngày bắt đầu phải nằm trong khoảng 0–12 khi đang giữa kỳ Chợ.
+
+## Thay đổi kế thừa từ v7.0
 
 1. **Ngày bắt đầu** và **ngày đích** do người dùng nhập, không cố định ngày 30/04/2028.
 2. Nhập số dư **đá tím và bạc thực tế ĐẦU NGÀY**. Hôm đó chưa nhận thưởng boss, liên minh hay xưởng. Không cộng lại thu nhập của các ngày trước.
@@ -29,30 +38,32 @@ Sử dụng **MILP HiGHS WASM trong Web Worker** hoàn toàn offline trên Andro
 
 ## Build APK bằng GitHub Actions
 
-1. Tải ZIP **mã nguồn Android v7.0**, giải nén **vào thư mục gốc** repository có nhánh `main`, đảm bảo thấy `.github/workflows/build-apk.yml`, `app/`, `tests/` và `build.gradle` ở cùng cấp.
-2. Commit và push; hoặc vào tab **Actions → Build Khoang Thach Android APK (HiGHS WASM) → Run workflow**.
-3. Workflow cài Android SDK và Gradle, tải npm `highs@1.15.4` trong CI, kiểm tra thuật toán v7 trên SciPy, giải HiGHS WASM thực, thử export Python, biên dịch APK.
-4. Khi tất cả bước hoàn tất màu xanh, tải artifact **Khoang-Thach-Mobile-HiGHS-WASM-APK**, giải nén và cài `app-debug.apk`.
+1. Tải ZIP **mã nguồn Android v7.1 FINAL**, giải nén **vào thư mục gốc** repository có nhánh `main`, đảm bảo thấy `.github/workflows/build-apk.yml`, `app/`, `tests/` và `build.gradle` ở cùng cấp.
+2. Commit và push; hoặc vào tab **Actions → Build Khoang Thach v7.1 FINAL Android APK → Run workflow**.
+3. Workflow cài Android SDK và Gradle, tải npm `highs@1.15.4` trong CI, kiểm tra thuật toán v7.1 trên SciPy, giải HiGHS WASM thực, thử export Python, biên dịch APK.
+4. Khi tất cả bước hoàn tất màu xanh, tải artifact **Khoang-Thach-v7.1-FINAL-APK**, giải nén và cài `app-debug.apk`.
 5. Nếu lần build đỏ, mở job `android`, gửi nội dung bước lỗi. Chưa có APK nếu bước Upload artifact bị bỏ qua.
 
 ### Commands trên Codespaces (đã tải ZIP nguồn lên thư mục gốc)
 
 ```bash
 cd "$(git rev-parse --show-toplevel)"
-unzip -o KhoangThach_v7_Android_Source.zip
-rm KhoangThach_v7_Android_Source.zip
+unzip -o KhoangThach_v7_1_FINAL_Android_Source.zip
+rm KhoangThach_v7_1_FINAL_Android_Source.zip
 git add -A
 git commit -m "Upgrade Khoang Thach to v7 dynamic multilingual planner"
 git push origin HEAD:main
 ```
 
-**Nếu đang ở repo v6.1**, thay bằng gói `KhoangThach_v7_PATCH_GitHub.zip`, chạy các lệnh tương tự với tên file PATCH. Không giải nén cả hai gói lên cùng repository nếu không cần.
+**Nếu đang ở repo v6.1**, thay bằng gói `KhoangThach_v7_1_FINAL_PATCH_GitHub.zip`, chạy các lệnh tương tự với tên file PATCH. Không giải nén cả hai gói lên cùng repository nếu không cần.
 
 ## Chạy kiểm thử thuật toán ở máy Linux/Codespaces
 
 ```bash
 python -m pip install 'scipy>=1.11,<2' xlsxwriter
 node tests/test_v7_dynamic.js
+node tests/test_js_optimizer.js
+python -m unittest discover -s tests -p "test_optimizer.py" -v
 python tests/test_export_schema.py
 ```
 

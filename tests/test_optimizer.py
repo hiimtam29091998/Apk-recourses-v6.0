@@ -36,24 +36,24 @@ class PlannerTests(unittest.TestCase):
         self.assertEqual(e['deadline'],'2028-04-30')
         self.assertEqual(e['event'],'Chợ lấp lánh')
         self.assertEqual(e['core_bought'],6)
-        self.assertEqual(e['bonus_bought'],11)  # v6.1 dồn 4 lượt thiếu về Chợ cuối cùng
+        self.assertEqual(e['bonus_bought'],12)  # v7.1: đủ 12 lượt mỗi Chợ
     def test_early_market_lexicographic_tie_break(self):
         markets=[e for e in self.plan['events'] if e['event']=='Chợ lấp lánh']
         self.assertEqual(len(markets),19)
-        self.assertTrue(all(e['bonus_bought']==15 for e in markets[:-1]))
-        self.assertEqual(markets[-1]['bonus_bought'],11)
-        self.assertEqual(markets[-1]['bonus_missed'],4)
-        self.assertEqual(self.plan['stages'],[76,361,281,304])
+        self.assertTrue(all(e['bonus_bought']==12 for e in markets[:-1]))
+        self.assertEqual(markets[-1]['bonus_bought'],12)
+        self.assertEqual(markets[-1]['bonus_missed'],0)
+        self.assertEqual(self.plan['stages'],[76,361,228,410])
         self.assertEqual(len(self.plan['early_market_priority']),19)
-        self.assertTrue(all(x['bought']==15 for x in self.plan['early_market_priority'][:-1]))
+        self.assertTrue(all(x['bought']==12 for x in self.plan['early_market_priority'][:-1]))
 
-    def test_tam_profile_153000_gold_early_priority(self):
+    def test_tam_profile_206000_gold_early_priority(self):
         p=optimize({'initial_quartz':9650,'damage_g':5.92})
-        self.assertEqual(p['stages'],[76,361,281,306])
+        self.assertEqual(p['stages'],[76,361,228,412])
         markets=[e for e in p['events'] if e['event']=='Chợ lấp lánh']
-        self.assertTrue(all(e['bonus_bought']==15 for e in markets[:-1]))
-        self.assertEqual(markets[-1]['bonus_bought'],11)
-        self.assertEqual(p['totals']['gold_gained'],153000)
+        self.assertTrue(all(e['bonus_bought']==12 for e in markets[:-1]))
+        self.assertEqual(markets[-1]['bonus_bought'],12)
+        self.assertEqual(p['totals']['gold_gained'],206000)
         self.assertEqual(p['totals']['quartz_end'],3322)
 
     def test_exact_calendar_months(self):
@@ -99,11 +99,17 @@ class PlannerTests(unittest.TestCase):
         self.assertEqual(t['initial_silver']+t['silver_exchanged'],t['silver_event_spent']+t['silver_end'])
     def test_priority_result(self):
         t=self.plan['totals']
-        self.assertEqual((t['core_complete'],t['bonus_bought'],t['gold_gained']),(76,281,152000))
-        self.assertEqual((t['silver_exchanged'],t['quartz_end']),(4425000,3604))
+        self.assertEqual((t['core_complete'],t['bonus_bought'],t['gold_gained']),(76,228,205000))
+        self.assertEqual((t['silver_exchanged'],t['quartz_end']),(3895000,3604))
+    def test_every_market_exactly_twelve_and_costs(self):
+        markets=[e for e in self.plan['events'] if e['event']=='Chợ lấp lánh']
+        self.assertEqual(len(markets),19)
+        self.assertTrue(all(e['bonus_bought']==12 and e['bonus_missed']==0 for e in markets))
+        self.assertEqual(sum(e['bonus_bought'] for e in markets),228)
+        self.assertEqual(sum(e['silver_spent'] for e in markets),19*150000)
     def test_units_not_exceed_market(self):
         t=self.plan['totals']
-        self.assertEqual(t['bonus_max'],285)
+        self.assertEqual(t['bonus_max'],228)
         self.assertLessEqual(t['bonus_bought'],t['bonus_max'])
     def test_jan_and_feb_events_2028(self):
         x=[e for e in self.plan['events'] if e['date'].startswith('2028-02')]
@@ -124,7 +130,7 @@ class PlannerTests(unittest.TestCase):
     def test_early_mode(self):
         p=optimize({'completion_mode':'early'})
         self.assertEqual(p['totals']['core_complete'],76)
-        self.assertEqual(p['totals']['bonus_bought'],281)
+        self.assertEqual(p['totals']['bonus_bought'],228)
         self.assertTrue(all(x['quartz_balance']>=0 for x in p['daily']))
     def test_exact_daily_rollup(self):
         p=self.plan
@@ -137,7 +143,7 @@ class PlannerTests(unittest.TestCase):
             self.assertIn('08_Ton_kho_tung_ngay.csv',z.namelist())
             daily=list(csv.DictReader(z.read('08_Ton_kho_tung_ngay.csv').decode('utf-8-sig').splitlines()))
             self.assertEqual(len(daily),532)
-            self.assertEqual(daily[-1]['date'],'2028-04-30')
+            self.assertEqual(daily[-1]['Ngày'],'2028-04-30')
     def test_xlsx_export_valid(self):
         with ZipFile(BytesIO(make_excel(self.plan,'Người chơi A'))) as z:
             self.assertIn('xl/workbook.xml',z.namelist())

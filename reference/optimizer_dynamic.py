@@ -26,6 +26,7 @@ START = date(2026, 11, 16)
 END = date(2028, 4, 30)  # default only, not a planning limit
 NAMES = ('Trường bắn đoạt bảo', 'Chuẩn bị toàn diện', 'Thợ săn tiền thưởng', 'Chợ lấp lánh')
 CORE_UNITS = (5, 2, 6, 6)
+MARKET_BONUS_LIMIT = 12
 EVENT_KIND = ('silver', 'quartz', 'silver', 'silver')
 
 
@@ -90,7 +91,7 @@ def validated(raw:dict)->dict:
     active=event_start<first<=event_end
     if not active and (data['ongoing_core_bought'] or data['ongoing_bonus_bought']):
         raise ValueError('Không được khai báo lượt đã mua khi đầu ngày không nằm giữa sự kiện.')
-    if data['ongoing_core_bought']>CORE_UNITS[global_week%4] or data['ongoing_bonus_bought']>(15 if global_week%4==3 else 0):
+    if data['ongoing_core_bought']>CORE_UNITS[global_week%4] or data['ongoing_bonus_bought']>(MARKET_BONUS_LIMIT if global_week%4==3 else 0):
         raise ValueError('Số lượt đã mua vượt giới hạn sự kiện.')
     return data
 
@@ -165,14 +166,14 @@ def optimize(raw):
     model=LPBuilder()
     core=[model.add('core_'+str(i+1),0,w['core_units']-w['core_before']) for i,w in enumerate(weeks)]
     full=[model.add('full_'+str(i+1),0,1) for i in range(len(weeks))]
-    extras={i:model.add('extra_'+str(i+1),0,15-w['bonus_before']) for i,w in enumerate(weeks) if w['event']=='Chợ lấp lánh'}
+    extras={i:model.add('extra_'+str(i+1),0,MARKET_BONUS_LIMIT-w['bonus_before']) for i,w in enumerate(weeks) if w['event']=='Chợ lấp lánh'}
     # Whole 5,000-stone transactions are a deliberate practical schedule choice.
     silver={j:model.add('silver_'+d.isoformat(),0,50) for j,d in enumerate(days)
             if d.weekday() in (0,5,6) or d.day==1 or d==month_last_day(d.year,d.month) or d==last or d==first}
     gold={m:model.add('gold_'+m,0,24-(data['gold_used_month'] if m==first.strftime('%Y-%m') else 0)) for m in months}
     for i,w in enumerate(weeks):
         model.rule({core[i]:1,full[i]:-(w['core_units']-w['core_before'])},0,np.inf)
-        if i in extras:model.rule({extras[i]:1,full[i]:-(15-w['bonus_before'])},-np.inf,0)
+        if i in extras:model.rule({extras[i]:1,full[i]:-(MARKET_BONUS_LIMIT-w['bonus_before'])},-np.inf,0)
     for m in months:
         quota=(250000-(data['silver_used_month'] if m==first.strftime('%Y-%m') else 0))//5000
         model.rule({j:1 for di,j in silver.items() if days[di].strftime('%Y-%m')==m},-np.inf,quota)
@@ -208,18 +209,18 @@ def optimize(raw):
         stages.append(score)
         if objective:extra.append(({j:-v for j,v in objective.items()},score,score))
     # v6.1: strict chronological Market tie-break AFTER all four protected
-    # levels. A certified solution with 15/15 on the current Market already
+    # levels. A certified solution with the full MARKET_BONUS_LIMIT on the current Market already
     # proves its optimum; otherwise solve a new MILP and freeze its result.
     early_market_priority=[]
     for i,var in extras.items():
-        if int(sol[var])!=15-weeks[i]['bonus_before']:
+        if int(sol[var])!=MARKET_BONUS_LIMIT-weeks[i]['bonus_before']:
             res=model.solve({var:-1},extra)
             if res.x is None or res.status!=0:
                 raise RuntimeError(f'Không chứng minh được ưu tiên Chợ thứ {i+1}: {res.message}')
             sol=np.rint(res.x).astype(int)
         bought=int(sol[var])
         extra.append(({var:1},bought,bought))
-        early_market_priority.append(dict(event_index=i+1,date=weeks[i]['event_start'],bought=bought+weeks[i]['bonus_before'],missed=15-bought-weeks[i]['bonus_before']))
+        early_market_priority.append(dict(event_index=i+1,date=weeks[i]['event_start'],bought=bought+weeks[i]['bonus_before'],missed=MARKET_BONUS_LIMIT-bought-weeks[i]['bonus_before']))
     # Optional gold-in-earlier-month tie-break is AFTER all Market positions.
     earlier={gold[m]:-(len(months)-i) for i,m in enumerate(months)}
     res=model.solve(earlier,extra,timeout=20)
@@ -335,8 +336,9 @@ def optimize(raw):
         last=week_rows[-1]
         event_results.append({**w,'core_bought':int(sol[core[i]])+w['core_before'],'core_planned':int(sol[core[i]]),'core_complete':int(sol[core[i]])+w['core_before']==w['core_units'],
             'bonus_bought':int(sol[extras[i]])+w['bonus_before'] if i in extras else 0,'bonus_planned':int(sol[extras[i]]) if i in extras else 0,
-            'bonus_missed':15-int(sol[extras[i]])-w['bonus_before'] if i in extras else 0,
-            'bonus_reason':('Giới hạn tài nguyên/hạn mức sau khi ưu tiên sự kiện cốt lõi, tổng lượt Chợ và tổng vàng. Các Chợ sớm đã được ưu tiên trước.' if i in extras and int(sol[extras[i]])+w['bonus_before']<15 else ''),
+            'bonus_limit':MARKET_BONUS_LIMIT if i in extras else 0,
+            'bonus_missed':MARKET_BONUS_LIMIT-int(sol[extras[i]])-w['bonus_before'] if i in extras else 0,
+            'bonus_reason':('Giới hạn tài nguyên/hạn mức sau khi ưu tiên sự kiện cốt lõi, tổng lượt Chợ và tổng vàng. Các Chợ sớm đã được ưu tiên trước.' if i in extras and int(sol[extras[i]])+w['bonus_before']<MARKET_BONUS_LIMIT else ''),
             'silver_spent':spent_s,'quartz_spent':spent_q,
             'quartz_after_event':last['quartz_balance'],'silver_after_event':last['silver_balance'],
             'completion_date':max((p['date'] for p in event_purchases),default=None),
@@ -373,7 +375,7 @@ def optimize(raw):
         core_complete=sum(e['core_complete'] for e in event_results),core_total=len(event_results),
         core_units_bought=sum(e['core_bought'] for e in event_results),
         core_units_max=sum(e['core_units'] for e in event_results),
-        bonus_bought=sum(e['bonus_bought'] for e in event_results),bonus_max=len(extras)*15,
+        bonus_bought=sum(e['bonus_bought'] for e in event_results),bonus_max=len(extras)*MARKET_BONUS_LIMIT,bonus_per_market_max=MARKET_BONUS_LIMIT,
         silver_exchanged=total_silver,gold_times=gt,gold_gained=gt*500,
         quartz_event_spent=total_quartz_event,silver_event_spent=total_silver_event,
         quartz_end=q_end,silver_end=s_end,

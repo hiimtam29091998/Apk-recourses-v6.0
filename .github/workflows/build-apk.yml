@@ -1,4 +1,4 @@
-name: Build Khoang Thach Android APK (HiGHS WASM)
+name: Build Khoang Thach v7.1 FINAL Android APK
 on:
   workflow_dispatch:
   push:
@@ -36,10 +36,11 @@ jobs:
           node --check app/src/main/assets/optimizer.js
           node --check app/src/main/assets/solver-worker.js
           node --check app/src/main/assets/app.js
-      - name: Test dynamic dates, opening balances and quota parity
+      - name: Test 7.1 dynamic dates, opening balances and 12-purchase Market cap
         run: |
           python -m pip install --quiet 'scipy>=1.11,<2'
           node tests/test_v7_dynamic.js
+          python -m unittest discover -s tests -p 'test_optimizer.py' -v
       - name: Test actual HiGHS WASM on Node.js
         run: node tests/test_highs_wasm_node.cjs
       - name: Verify Python export modules
@@ -59,6 +60,6 @@ jobs:
       - name: Upload installable APK
         uses: actions/upload-artifact@v4
         with:
-          name: Khoang-Thach-Mobile-HiGHS-WASM-APK
+          name: Khoang-Thach-v7.1-FINAL-APK
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error

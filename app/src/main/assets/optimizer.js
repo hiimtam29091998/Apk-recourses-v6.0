@@ -6,6 +6,7 @@
 'use strict';
 const DAY=86400000, ANCHOR='2026-11-16', DEFAULT_END='2028-04-30';
 const NAMES=['Trường bắn đoạt bảo','Chuẩn bị toàn diện','Thợ săn tiền thưởng','Chợ lấp lánh'];
+const MARKET_BONUS_LIMIT=12;
 const CORE=[5,2,6,6],KIND=['silver','quartz','silver','silver'];
 const milliDate=s=>Date.parse(s+'T00:00:00Z');
 const iso=ms=>new Date(ms).toISOString().slice(0,10);
@@ -54,7 +55,7 @@ function validate(raw){
  const n=eventIndexForDay(d.start_date),current=eventData(n,d);
  const active=d.start_date>current.event_start && d.start_date<=current.event_end;
  if(!active&&(d.ongoing_core_bought||d.ongoing_bonus_bought))throw Error('Không thể nhập lượt đã mua nếu đầu ngày bắt đầu không nằm giữa sự kiện.');
- if(d.ongoing_core_bought>current.core_units||d.ongoing_bonus_bought>(current.event==='Chợ lấp lánh'?15:0))
+ if(d.ongoing_core_bought>current.core_units||d.ongoing_bonus_bought>(current.event==='Chợ lấp lánh'?MARKET_BONUS_LIMIT:0))
    throw Error('Số lượt đã mua trong sự kiện hiện tại vượt giới hạn.');
  d.snapshot_type='start_of_day';
  return d;
@@ -121,10 +122,10 @@ function optimize(raw,solver){
  const earned=days.map(x=>1176+(weekday(x)<6?9000:0)+(mondays.get(x)?.reward_boss||0));
  const model=new LPBuilder(),core=weeks.map((w,i)=>model.add('core'+i,0,w.core_units-w.core_before)),full=weeks.map((w,i)=>model.add('full'+i,0,1));
  const extras=new Map(),silver=new Map(),gold=new Map();
- weeks.forEach((w,i)=>{if(w.event==='Chợ lấp lánh')extras.set(i,model.add('extra'+i,0,15-w.bonus_before));});
+ weeks.forEach((w,i)=>{if(w.event==='Chợ lấp lánh')extras.set(i,model.add('extra'+i,0,MARKET_BONUS_LIMIT-w.bonus_before));});
  days.forEach((x,j)=>{if([0,5,6].includes(weekday(x))||x.slice(8)==='01'||x===monthEnd(x)||x===d.end_date||x===d.start_date)silver.set(j,model.add('silver'+x,0,50));});
  months.forEach(m=>gold.set(m,model.add('gold'+m,0,24-(m===d.start_date.slice(0,7)?d.gold_used_month:0))));
- weeks.forEach((w,i)=>{model.rule({[core[i]]:1,[full[i]]:-(w.core_units-w.core_before)},0,Infinity);if(extras.has(i))model.rule({[extras.get(i)]:1,[full[i]]:-(15-w.bonus_before)},-Infinity,0);});
+ weeks.forEach((w,i)=>{model.rule({[core[i]]:1,[full[i]]:-(w.core_units-w.core_before)},0,Infinity);if(extras.has(i))model.rule({[extras.get(i)]:1,[full[i]]:-(MARKET_BONUS_LIMIT-w.bonus_before)},-Infinity,0);});
  months.forEach(m=>{const terms={};for(const [j,v] of silver)if(days[j].startsWith(m))terms[v]=1;model.rule(terms,-Infinity,Math.floor((250000-(m===d.start_date.slice(0,7)?d.silver_used_month:0))/5000));});
  const due=new Map();deadlineIndex.forEach((j,i)=>{if(!due.has(j))due.set(j,[]);due.get(j).push(i);});
  let inc=0,qterms={},sterms={};
@@ -151,14 +152,14 @@ function optimize(raw,solver){
  const orderedMarkets=[...extras.entries()];
  for(const [eventIndex,variable] of orderedMarkets){
   // A feasible, certified solution already attaining the universal upper bound
-  // (15) PROVES this Market is maximal. In that case no new MILP solve is needed.
-  if(sol[variable]!==15-weeks[eventIndex].bonus_before){
+  // (MARKET_BONUS_LIMIT) PROVES this Market is maximal. In that case no new MILP solve is needed.
+  if(sol[variable]!==MARKET_BONUS_LIMIT-weeks[eventIndex].bonus_before){
    sol=model.solve({[variable]:-1},extra,solver,65);
   }
   const bought=sol[variable];
-  if(!Number.isInteger(bought)||bought<0||bought>15-weeks[eventIndex].bonus_before)throw Error('Lượt Chợ ưu tiên không hợp lệ.');
+  if(!Number.isInteger(bought)||bought<0||bought>MARKET_BONUS_LIMIT-weeks[eventIndex].bonus_before)throw Error('Lượt Chợ ưu tiên không hợp lệ.');
   extra.push({terms:{[variable]:1},lo:bought,hi:bought});
-  earlyMarketPriority.push({event_index:eventIndex+1,date:weeks[eventIndex].event_start,bought:bought+weeks[eventIndex].bonus_before,missed:15-bought-weeks[eventIndex].bonus_before});
+  earlyMarketPriority.push({event_index:eventIndex+1,date:weeks[eventIndex].event_start,bought:bought+weeks[eventIndex].bonus_before,missed:MARKET_BONUS_LIMIT-bought-weeks[eventIndex].bonus_before});
  }
  // Only after fixing every earlier Market may we prefer earlier gold purchases.
  // This optional financial scheduling tie-break cannot change bonus positions.
@@ -206,7 +207,7 @@ function optimize(raw,solver){
  const events=weeks.map((w,i)=>{
   const ps=purchases.filter(p=>p.event_index===w.index),last=daily[deadlineIndex[i]],spent_s=ps.filter(p=>p.resource==='silver').reduce((a,p)=>a+p.cost,0),spent_q=ps.filter(p=>p.resource==='quartz').reduce((a,p)=>a+p.cost,0);
   const begin=Math.max(0,dateDiff(w.date,d.start_date)),rows=daily.slice(begin,deadlineIndex[i]+1);
-  return {...w,core_bought:sol[core[i]]+w.core_before,core_planned:sol[core[i]],core_complete:sol[core[i]]+w.core_before===w.core_units,bonus_bought:extras.has(i)?sol[extras.get(i)]+w.bonus_before:0,bonus_planned:extras.has(i)?sol[extras.get(i)]:0,bonus_missed:extras.has(i)?15-sol[extras.get(i)]-w.bonus_before:0,bonus_reason:extras.has(i)&&sol[extras.get(i)]+w.bonus_before<15?'Giới hạn tài nguyên/hạn mức sau khi ưu tiên sự kiện cốt lõi, tổng lượt Chợ và tổng vàng. Các Chợ sớm đã được ưu tiên trước.':'',silver_spent:spent_s,quartz_spent:spent_q,quartz_after_event:last.quartz_balance,silver_after_event:last.silver_balance,completion_date:ps.length?ps.reduce((a,p)=>p.date>a?p.date:a,ps[0].date):null,purchase_days:new Set(ps.map(p=>p.date)).size,mission_income:rows.reduce((a,r)=>a+r.mission,0),workshop_income:rows.reduce((a,r)=>a+r.workshop,0),income_total:rows.reduce((a,r)=>a+r.quartz_income,0)};
+  return {...w,core_bought:sol[core[i]]+w.core_before,core_planned:sol[core[i]],core_complete:sol[core[i]]+w.core_before===w.core_units,bonus_bought:extras.has(i)?sol[extras.get(i)]+w.bonus_before:0,bonus_planned:extras.has(i)?sol[extras.get(i)]:0,bonus_limit:extras.has(i)?MARKET_BONUS_LIMIT:0,bonus_missed:extras.has(i)?MARKET_BONUS_LIMIT-sol[extras.get(i)]-w.bonus_before:0,bonus_reason:extras.has(i)&&sol[extras.get(i)]+w.bonus_before<MARKET_BONUS_LIMIT?'Giới hạn tài nguyên/hạn mức sau khi ưu tiên sự kiện cốt lõi, tổng lượt Chợ và tổng vàng. Các Chợ sớm đã được ưu tiên trước.':'',silver_spent:spent_s,quartz_spent:spent_q,quartz_after_event:last.quartz_balance,silver_after_event:last.silver_balance,completion_date:ps.length?ps.reduce((a,p)=>p.date>a?p.date:a,ps[0].date):null,purchase_days:new Set(ps.map(p=>p.date)).size,mission_income:rows.reduce((a,r)=>a+r.mission,0),workshop_income:rows.reduce((a,r)=>a+r.workshop,0),income_total:rows.reduce((a,r)=>a+r.quartz_income,0)};
  });
  const monthly=months.map(m=>{
   const rows=daily.filter(r=>r.month===m),evs=events.filter(e=>e.date.startsWith(m)),end=rows[rows.length-1],sx=rows.reduce((a,r)=>a+r.silver_exchanged,0),gt=rows.reduce((a,r)=>a+r.gold_times,0);
@@ -214,10 +215,10 @@ function optimize(raw,solver){
  });
  const qt=earned.reduce((a,v)=>a+v,0),sx=monthly.reduce((a,r)=>a+r.silver_exchanged,0),qs=monthly.reduce((a,r)=>a+r.quartz_spent,0),ss=monthly.reduce((a,r)=>a+r.silver_spent,0),gt=monthly.reduce((a,r)=>a+r.gold_times,0),end=daily[daily.length-1];
  if(end.quartz_balance!==d.initial_quartz+qt-sx-qs-gt*5000||end.silver_balance!==d.initial_silver+sx-ss||monthly.some(m=>m.gold_quota_left<0||m.silver_quota_left<0))throw Error('Lỗi đối soát tổng hoặc hạn mức.');
- const totals={initial_quartz:d.initial_quartz,initial_silver:d.initial_silver,income_quartz:qt,quartz_total:d.initial_quartz+qt,core_complete:events.filter(e=>e.core_complete).length,core_total:events.length,core_units_bought:events.reduce((a,e)=>a+e.core_bought,0),core_units_max:events.reduce((a,e)=>a+e.core_units,0),bonus_bought:events.reduce((a,e)=>a+e.bonus_bought,0),bonus_max:events.filter(e=>e.event==='Chợ lấp lánh').length*15,silver_exchanged:sx,gold_times:gt,gold_gained:gt*500,quartz_event_spent:qs,silver_event_spent:ss,quartz_end:end.quartz_balance,silver_end:end.silver_balance,note:'Bộ giải HiGHS WebAssembly offline. Ưu tiên các Chợ lấp lánh sớm nhất trong các nghiệm có cùng số lượt cốt lõi, lượt Chợ và tổng vàng. Sự kiện mở thứ Ba; Trường bắn kết thúc thứ Bảy; sự kiện khác Chủ nhật. Thời gian kế hoạch tùy chọn.'};
+ const totals={initial_quartz:d.initial_quartz,initial_silver:d.initial_silver,income_quartz:qt,quartz_total:d.initial_quartz+qt,core_complete:events.filter(e=>e.core_complete).length,core_total:events.length,core_units_bought:events.reduce((a,e)=>a+e.core_bought,0),core_units_max:events.reduce((a,e)=>a+e.core_units,0),bonus_bought:events.reduce((a,e)=>a+e.bonus_bought,0),bonus_max:events.filter(e=>e.event==='Chợ lấp lánh').length*MARKET_BONUS_LIMIT,bonus_per_market_max:MARKET_BONUS_LIMIT,silver_exchanged:sx,gold_times:gt,gold_gained:gt*500,quartz_event_spent:qs,silver_event_spent:ss,quartz_end:end.quartz_balance,silver_end:end.silver_balance,note:'Bộ giải HiGHS WebAssembly offline. Ưu tiên các Chợ lấp lánh sớm nhất trong các nghiệm có cùng số lượt cốt lõi, lượt Chợ và tổng vàng. Sự kiện mở thứ Ba; Trường bắn kết thúc thứ Bảy; sự kiện khác Chủ nhật. Thời gian kế hoạch tùy chọn.'};
  const boss_entries=d.boss_entries;const input=Object.fromEntries(Object.entries(d).filter(([k])=>k!=='boss_entries'));
  return {input,boss_entries,totals,events,months:monthly,transactions,transaction_days:groupTransactions(transactions,daily),purchases,checkpoints:daily,daily,stages,period:{start:d.start_date,end:d.end_date,days:days.length,snapshot:'start_of_day'},early_market_priority:earlyMarketPriority,priority_rule:'core > total market bonus > total gold > earliest market > scheduling',months_count:months.length};
 }
-root.KhoangThachSolver={optimize,reward,validate,weeksFor,LPBuilder};
+root.KhoangThachSolver={optimize,reward,validate,weeksFor,LPBuilder,MARKET_BONUS_LIMIT};
 if(typeof module==='object'&&module.exports)module.exports=root.KhoangThachSolver;
 })(typeof self!=='undefined'?self:globalThis);

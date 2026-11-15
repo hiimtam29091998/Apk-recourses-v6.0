@@ -1,0 +1,15 @@
+KHOÁNG THẠCH v7.1 FINAL – KẾT QUẢ KIỂM THỬ MÃ NGUỒN
+
+QUY TẮC MỚI: mỗi Chợ tối đa 12 lượt bổ sung × 10.000 bạc, ngoài 6 × 5.000 bạc cốt lõi.
+
+Hồ sơ mặc định: 16/11/2026 – 30/04/2028
+- stages: [76,361,228,410]
+- 76/76 kỳ cốt lõi; 228/228 lượt Chợ (19 kỳ × 12)
+- 205.000 vàng; 3.895.000 bạc đổi; đá tím cuối kỳ 3.604; bạc cuối kỳ 0
+Hồ sơ Tâm (9.650 đá, 5,92G)
+- stages: [76,361,228,412]
+- 228/228 lượt Chợ; 206.000 vàng; đá tím cuối kỳ 3.322
+
+Đã xác minh: 26/26 bài kiểm thử Python tham chiếu; 5/5 ca động JS/Python; kiểm thử JS toàn kỳ và đối chiếu giai đoạn cho hai hồ sơ mẫu. Giao diện JS và Python nguồn được cập nhật.
+
+CHƯA xác minh: HiGHS WASM thực đóng gói và APK cài đặt Android (không có Android SDK/Gradle tại môi trường này). GitHub Actions sẽ chạy kiểm thử WASM thực và gradle assembleDebug trước khi đăng artifact.

@@ -1,3 +1,5 @@
+LƯU Ý: Đây là tài liệu lưu trữ của bản v7.0, số 15 lượt/Chợ và các kết quả cũ KHÔNG áp dụng cho v7.1 FINAL. Xem README_VI.md và TEST_STATUS_v7_1.txt.
+
 KHOÁNG THẠCH V7.0 – KẾT QUẢ THỰC TẾ (15/11/2026)
 
 ĐẠT: Python và JS models đối chiếu bằng SciPy/HiGHS trong 6 hồ sơ động:

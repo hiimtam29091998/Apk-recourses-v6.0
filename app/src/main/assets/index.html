@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Khoáng Thạch v7.0 · Dynamic Planner</title><link rel="stylesheet" href="./app.css"></head>
+<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Khoáng Thạch v7.1 FINAL · Dynamic Planner</title><link rel="stylesheet" href="./app.css"></head>
 <body><div class="app-frame">
 <aside class="sidebar"><div class="brand"><div class="brand-mark">◆</div><div><b data-t="brand">KHOÁNG THẠCH</b><small>RESOURCE PLANNER</small></div></div>
 <div class="sidebar-label" data-t="navigation">ĐIỀU HƯỚNG</div><nav class="nav">
@@ -27,7 +27,7 @@
 <label><span data-t="silverUsed">Bạc đã đổi trong tháng bắt đầu</span><input id="silverNov" type="number" step="1" min="0" max="250000" value="70000"><small data-t="silverLimit">Hạn mức mỗi tháng: 250.000</small></label>
 <label><span data-t="goldUsed">Lượt đổi vàng đã dùng tháng này</span><input id="goldNov" type="number" step="1" min="0" max="24" value="6"><small data-t="goldLimit">Tối đa 24 lượt/tháng</small></label>
 <label><span data-t="corePast">Cốt lõi đã mua trong sự kiện đang diễn ra</span><input id="ongoingCore" type="number" step="1" min="0" value="0"><small data-t="corePastHint">Chỉ nhập nếu sự kiện bắt đầu trước ngày chốt</small></label>
-<label><span data-t="bonusPast">Lượt Chợ thêm đã mua trong sự kiện này</span><input id="ongoingBonus" type="number" step="1" min="0" max="15" value="0"><small data-t="bonusPastHint">Chỉ dành cho Chợ đang diễn ra</small></label>
+<label><span data-t="bonusPast">Lượt Chợ thêm đã mua trong sự kiện này</span><input id="ongoingBonus" type="number" step="1" min="0" max="12" value="0"><small data-t="bonusPastHint">Chỉ dành cho Chợ đang diễn ra</small></label>
 <label><span data-t="bossDamage">Sát thương boss tốt nhất (G)</span><input id="damage" type="number" min="0" max="10" step="0.001" value="5.82"><small data-t="bossHint">Giá trị cao nhất của tối đa 20 lượt</small></label>
 <label><span data-t="forecastMode">Chế độ dự báo</span><select id="mode"><option value="fixed" data-t="fixed">Cố định</option><option value="growth" data-t="growthMode">Tăng theo tháng</option><option value="manual" data-t="manual">Theo từng tuần</option></select></label>
 <label><span data-t="growth">Tăng trưởng boss mỗi tháng (G)</span><input id="growth" type="number" step="0.01" min="-1" max="1" value="0.04"></label>
