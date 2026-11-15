@@ -6,7 +6,8 @@ const parser=path.join(__dirname,'solve_lp_scipy.py');
 const cases=[
  {},
  {initial_quartz:0, initial_silver:0,silver_used_nov:250000,gold_used_nov:24,damage_g:5.5,completion_mode:'early'},
- {initial_quartz:95000,initial_silver:15000,silver_used_nov:70000,gold_used_nov:6,damage_g:5.96,forecast_mode:'growth',monthly_growth_g:0.01,completion_mode:'sunday'}
+ {initial_quartz:95000,initial_silver:15000,silver_used_nov:70000,gold_used_nov:6,damage_g:5.96,forecast_mode:'growth',monthly_growth_g:0.01,completion_mode:'sunday'},
+ {initial_quartz:9650,initial_silver:0,silver_used_nov:70000,gold_used_nov:6,damage_g:5.92}
 ];
 for(const [i,input] of cases.entries()){
  let lastModel='';
@@ -17,6 +18,10 @@ for(const [i,input] of cases.entries()){
  };
  const result=solver.optimize(input,solve);
  const totals=result.totals;
+ assert.equal(result.early_market_priority.length,19);
+ const marketEvents=result.events.filter(x=>x.event==='Chợ lấp lánh');
+ assert.deepEqual(result.early_market_priority.map(x=>x.bought),marketEvents.map(x=>x.bonus_bought));
+ if(i===0||i===3){assert(marketEvents.slice(0,-1).every(x=>x.bonus_bought===15));assert.equal(marketEvents.at(-1).bonus_bought,11);}
  assert.equal(result.daily.length,532);
  assert.equal(result.events.length,76);
  assert.equal(result.months.length,18);

@@ -99,9 +99,36 @@ function optimize(raw,solver){
  const objs=[Object.fromEntries(full.map(v=>[v,-1])),Object.fromEntries(core.map(v=>[v,-1])),Object.fromEntries([...extras.values()].map(v=>[v,-1])),Object.fromEntries([...gold.values()].map(v=>[v,-1]))];
  let extra=[],stages=[],sol=null;
  objs.forEach(o=>{sol=model.solve(o,extra,solver);let score=-Object.entries(o).reduce((a,[k,v])=>a+sol[k]*v,0);stages.push(score);extra.push({terms:Object.fromEntries(Object.entries(o).map(([k,v])=>[k,-v])),lo:score,hi:score});});
- // Earlier-month preference is an optional tie-break and cannot modify the certified 4-tier objective.
+ // NEW v6.1 PRIORITY: earliest Market first, without sacrificing any of the
+ // four already-certified objective levels (full core events, core units,
+ // Market extras, total gold). This is an *exact* lexicographic tie-break,
+ // not a weighted sum which could trade a high-priority result for a lower one.
+ // Markets appear in chronological order because `weeks` does.
+ const earlyMarketPriority=[];
+ const orderedMarkets=[...extras.entries()];
+ for(const [eventIndex,variable] of orderedMarkets){
+  // A feasible, certified solution already attaining the universal upper bound
+  // (15) PROVES this Market is maximal. In that case no new MILP solve is needed.
+  if(sol[variable]!==15){
+   sol=model.solve({[variable]:-1},extra,solver,65);
+  }
+  const bought=sol[variable];
+  if(!Number.isInteger(bought)||bought<0||bought>15)throw Error('Lượt Chợ ưu tiên không hợp lệ.');
+  extra.push({terms:{[variable]:1},lo:bought,hi:bought});
+  earlyMarketPriority.push({event_index:eventIndex+1,date:weeks[eventIndex].event_start,bought,missed:15-bought});
+ }
+ // Only after fixing every earlier Market may we prefer earlier gold purchases.
+ // This optional financial scheduling tie-break cannot change bonus positions.
  const earlier=Object.fromEntries(months.map((m,i)=>[gold.get(m),-(months.length-i)]));
- try{sol=model.solve(earlier,extra,solver,20);}catch(e){/* Keep certified optimal solution. */}
+ try{sol=model.solve(earlier,extra,solver,20);}catch(e){/* Keep certified solution, including chronological Market priority. */}
+ // Recheck every fixed higher-priority score after the final scheduling pass.
+ if(stages[0]!==full.reduce((a,j)=>a+sol[j],0)||
+    stages[1]!==core.reduce((a,j)=>a+sol[j],0)||
+    stages[2]!==orderedMarkets.reduce((a,[,j])=>a+sol[j],0)||
+    stages[3]!==[...gold.values()].reduce((a,j)=>a+sol[j],0)||
+    earlyMarketPriority.some(x=>sol[extras.get(x.event_index-1)]!==x.bought)){
+  throw Error('Lịch sau ưu tiên Chợ làm thay đổi kết quả tối ưu cấp cao.');
+ }
  let q=d.initial_quartz,s=d.initial_silver,goldTotal=0;const daily=[];
  days.forEach((day,j)=>{
   const m=day.slice(0,7),b=mondays.get(day),boss=b?.reward_boss||0,mission=weekday(day)<6?9000:0;
@@ -136,7 +163,7 @@ function optimize(raw,solver){
  const events=weeks.map((w,i)=>{
   const ps=purchases.filter(p=>p.event_index===w.index),last=daily[deadlineIndex[i]],spent_s=ps.filter(p=>p.resource==='silver').reduce((a,p)=>a+p.cost,0),spent_q=ps.filter(p=>p.resource==='quartz').reduce((a,p)=>a+p.cost,0);
   const begin=dayIds.get(w.date),rows=daily.slice(begin,deadlineIndex[i]+1);
-  return {...w,core_bought:sol[core[i]],core_complete:sol[core[i]]===w.core_units,bonus_bought:extras.has(i)?sol[extras.get(i)]:0,silver_spent:spent_s,quartz_spent:spent_q,quartz_after_event:last.quartz_balance,silver_after_event:last.silver_balance,completion_date:ps.length?ps.reduce((a,p)=>p.date>a?p.date:a,ps[0].date):null,purchase_days:new Set(ps.map(p=>p.date)).size,mission_income:rows.reduce((a,r)=>a+r.mission,0),workshop_income:rows.reduce((a,r)=>a+r.workshop,0),income_total:rows.reduce((a,r)=>a+r.quartz_income,0)};
+  return {...w,core_bought:sol[core[i]],core_complete:sol[core[i]]===w.core_units,bonus_bought:extras.has(i)?sol[extras.get(i)]:0,bonus_missed:extras.has(i)?15-sol[extras.get(i)]:0,bonus_reason:extras.has(i)&&sol[extras.get(i)]<15?'Giới hạn tài nguyên/hạn mức sau khi ưu tiên sự kiện cốt lõi, tổng lượt Chợ và tổng vàng. Các Chợ sớm đã được ưu tiên trước.':'',silver_spent:spent_s,quartz_spent:spent_q,quartz_after_event:last.quartz_balance,silver_after_event:last.silver_balance,completion_date:ps.length?ps.reduce((a,p)=>p.date>a?p.date:a,ps[0].date):null,purchase_days:new Set(ps.map(p=>p.date)).size,mission_income:rows.reduce((a,r)=>a+r.mission,0),workshop_income:rows.reduce((a,r)=>a+r.workshop,0),income_total:rows.reduce((a,r)=>a+r.quartz_income,0)};
  });
  const monthly=months.map(m=>{
   const rows=daily.filter(r=>r.month===m),evs=events.filter(e=>e.date.startsWith(m)),end=rows[rows.length-1],sx=rows.reduce((a,r)=>a+r.silver_exchanged,0),gt=rows.reduce((a,r)=>a+r.gold_times,0);
@@ -144,9 +171,9 @@ function optimize(raw,solver){
  });
  const qt=earned.reduce((a,v)=>a+v,0),sx=monthly.reduce((a,r)=>a+r.silver_exchanged,0),qs=monthly.reduce((a,r)=>a+r.quartz_spent,0),ss=monthly.reduce((a,r)=>a+r.silver_spent,0),gt=monthly.reduce((a,r)=>a+r.gold_times,0),end=daily[daily.length-1];
  if(end.quartz_balance!==d.initial_quartz+qt-sx-qs-gt*5000||end.silver_balance!==d.initial_silver+sx-ss||monthly.some(m=>m.gold_quota_left<0||m.silver_quota_left<0))throw Error('Lỗi đối soát tổng hoặc hạn mức.');
- const totals={initial_quartz:d.initial_quartz,initial_silver:d.initial_silver,income_quartz:qt,quartz_total:d.initial_quartz+qt,core_complete:events.filter(e=>e.core_complete).length,core_total:events.length,core_units_bought:events.reduce((a,e)=>a+e.core_bought,0),core_units_max:events.reduce((a,e)=>a+e.core_units,0),bonus_bought:events.reduce((a,e)=>a+e.bonus_bought,0),bonus_max:19*15,silver_exchanged:sx,gold_times:gt,gold_gained:gt*500,quartz_event_spent:qs,silver_event_spent:ss,quartz_end:end.quartz_balance,silver_end:end.silver_balance,note:'Bộ giải HiGHS WebAssembly offline. Sự kiện mở thứ Ba; Trường bắn kết thúc thứ Bảy; sự kiện khác Chủ nhật. Kết thúc 30/04/2028.'};
+ const totals={initial_quartz:d.initial_quartz,initial_silver:d.initial_silver,income_quartz:qt,quartz_total:d.initial_quartz+qt,core_complete:events.filter(e=>e.core_complete).length,core_total:events.length,core_units_bought:events.reduce((a,e)=>a+e.core_bought,0),core_units_max:events.reduce((a,e)=>a+e.core_units,0),bonus_bought:events.reduce((a,e)=>a+e.bonus_bought,0),bonus_max:19*15,silver_exchanged:sx,gold_times:gt,gold_gained:gt*500,quartz_event_spent:qs,silver_event_spent:ss,quartz_end:end.quartz_balance,silver_end:end.silver_balance,note:'Bộ giải HiGHS WebAssembly offline. Ưu tiên các Chợ lấp lánh sớm nhất trong các nghiệm có cùng số lượt cốt lõi, lượt Chợ và tổng vàng. Sự kiện mở thứ Ba; Trường bắn kết thúc thứ Bảy; sự kiện khác Chủ nhật. Kết thúc 30/04/2028.'};
  const boss_entries=d.boss_entries;const input=Object.fromEntries(Object.entries(d).filter(([k])=>k!=='boss_entries'));
- return {input,boss_entries,totals,events,months:monthly,transactions,transaction_days:groupTransactions(transactions,daily),purchases,checkpoints:daily,daily,stages,months_count:months.length};
+ return {input,boss_entries,totals,events,months:monthly,transactions,transaction_days:groupTransactions(transactions,daily),purchases,checkpoints:daily,daily,stages,early_market_priority:earlyMarketPriority,priority_rule:'core > total market bonus > total gold > earliest market > scheduling',months_count:months.length};
 }
 root.KhoangThachSolver={optimize,reward,validate,weeksFor,LPBuilder};
 if(typeof module==='object'&&module.exports)module.exports=root.KhoangThachSolver;

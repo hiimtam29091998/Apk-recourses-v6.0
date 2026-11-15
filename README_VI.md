@@ -1,4 +1,4 @@
-# KHOÁNG THẠCH MOBILE v6.0 (Android, offline)
+# KHOÁNG THẠCH MOBILE v6.1 (Android, offline)
 
 **Mục tiêu:** Biên dịch APK thật cho Samsung Galaxy S23 Ultra, không cần SciPy trên Android.
 
@@ -53,3 +53,29 @@ git push origin main
 HiGHS WebAssembly: https://www.npmjs.com/package/highs (MIT license). Chaquopy: https://chaquo.com/chaquopy/. XlsxWriter: https://xlsxwriter.readthedocs.io/.
 
 Các thành phần có thể yêu cầu người phân phối tuân thủ giấy phép phần mềm tương ứng.
+
+## Mới v6.1: Chợ lấp lánh sớm nhất
+
+Sau khi bộ giải chứng minh tối ưu **(1) số sự kiện đủ cốt lõi, (2) tổng lượt cốt lõi, (3) tổng lượt Chợ bổ sung, (4) tổng số lượt vàng**, ứng dụng chạy tối ưu từ điển theo thứ tự mở Chợ tăng dần. Bất kỳ Chợ nào đạt 15/15 trong một nghiệm khả thi ở các cấp cao hơn đều được khóa ngay; nếu chưa đạt 15, bộ giải MILP chứng minh số lượt cao nhất rồi khóa trước khi qua Chợ sau.
+
+Với hồ sơ mẫu 9.052 đá, boss 5,82G: giữ 76/76 cốt lõi, 281/285 Chợ bổ sung, 152.000 vàng. 18 Chợ đầu đủ 15/15, chỉ Chợ 25/04/2028 mua 11/15.
+
+Với hồ sơ của **Tâm** trong file `Khoang_Thach_Tam.xlsx` (đá đầu kỳ 9.650, boss 5,92G): kết quả giữ 153.000 vàng và chỉ bỏ 4 lượt tại Chợ 25/04/2028. Không hardcode các ngày này vào thuật toán.
+
+Nếu nguồn lực/hạn mức khác, thiếu lượt có thể nằm ở Chợ khác, nhưng bộ giải luôn ưu tiên Chợ sớm một cách chính xác mà không giảm tổng phần thưởng/vàng.
+
+Bảng lịch sự kiện có cột **Lượt Chợ bỏ**. Trong kết quả JSON mới có `early_market_priority` và `priority_rule` để kiểm toán. Toàn bộ hồ sơ localStorage dùng lại khóa cũ, không làm mất dữ liệu người chơi.
+
+### Cập nhật repository có sẵn bằng Codespaces trên điện thoại
+
+Tải gói `KhoangThach_v6_1_PATCH_GitHub.zip` vào thư mục gốc repository rồi chạy:
+
+```bash
+unzip -o KhoangThach_v6_1_PATCH_GitHub.zip
+rm KhoangThach_v6_1_PATCH_GitHub.zip
+git add -A
+git commit -m "Prioritize earlier Sparkling Markets without sacrificing gold"
+git push origin main
+```
+
+Workflow GitHub Actions sẽ test HiGHS WASM và biên dịch APK. **Chỉ tải APK khi workflow báo xanh**; code ZIP không phải là APK.

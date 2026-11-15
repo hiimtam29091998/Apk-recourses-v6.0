@@ -36,7 +36,26 @@ class PlannerTests(unittest.TestCase):
         self.assertEqual(e['deadline'],'2028-04-30')
         self.assertEqual(e['event'],'Chợ lấp lánh')
         self.assertEqual(e['core_bought'],6)
-        self.assertEqual(e['bonus_bought'],15)
+        self.assertEqual(e['bonus_bought'],11)  # v6.1 dồn 4 lượt thiếu về Chợ cuối cùng
+    def test_early_market_lexicographic_tie_break(self):
+        markets=[e for e in self.plan['events'] if e['event']=='Chợ lấp lánh']
+        self.assertEqual(len(markets),19)
+        self.assertTrue(all(e['bonus_bought']==15 for e in markets[:-1]))
+        self.assertEqual(markets[-1]['bonus_bought'],11)
+        self.assertEqual(markets[-1]['bonus_missed'],4)
+        self.assertEqual(self.plan['stages'],[76,361,281,304])
+        self.assertEqual(len(self.plan['early_market_priority']),19)
+        self.assertTrue(all(x['bought']==15 for x in self.plan['early_market_priority'][:-1]))
+
+    def test_tam_profile_153000_gold_early_priority(self):
+        p=optimize({'initial_quartz':9650,'damage_g':5.92})
+        self.assertEqual(p['stages'],[76,361,281,306])
+        markets=[e for e in p['events'] if e['event']=='Chợ lấp lánh']
+        self.assertTrue(all(e['bonus_bought']==15 for e in markets[:-1]))
+        self.assertEqual(markets[-1]['bonus_bought'],11)
+        self.assertEqual(p['totals']['gold_gained'],153000)
+        self.assertEqual(p['totals']['quartz_end'],3322)
+
     def test_exact_calendar_months(self):
         self.assertEqual(len(self.plan['months']),18)
         self.assertEqual(self.plan['months'][0]['month'],'2026-11')

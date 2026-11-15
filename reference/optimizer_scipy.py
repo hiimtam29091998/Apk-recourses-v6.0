@@ -188,11 +188,28 @@ def optimize(raw):
         score=int(round(-sum(sol[j]*v for j,v in objective.items())))
         stages.append(score)
         extra.append(({j:-v for j,v in objective.items()},score,score))
-    # Tie-break: prioritize gold in earlier reset windows. If solver times out,
-    # preserve certified lexicographically optimal base solution.
+    # v6.1: strict chronological Market tie-break AFTER all four protected
+    # levels. A certified solution with 15/15 on the current Market already
+    # proves its optimum; otherwise solve a new MILP and freeze its result.
+    early_market_priority=[]
+    for i,var in extras.items():
+        if int(sol[var])!=15:
+            res=model.solve({var:-1},extra)
+            if res.x is None or res.status!=0:
+                raise RuntimeError(f'Không chứng minh được ưu tiên Chợ thứ {i+1}: {res.message}')
+            sol=np.rint(res.x).astype(int)
+        bought=int(sol[var])
+        extra.append(({var:1},bought,bought))
+        early_market_priority.append(dict(event_index=i+1,date=weeks[i]['event_start'],bought=bought,missed=15-bought))
+    # Optional gold-in-earlier-month tie-break is AFTER all Market positions.
     earlier={gold[m]:-(len(months)-i) for i,m in enumerate(months)}
     res=model.solve(earlier,extra,timeout=20)
     if res.x is not None and res.status==0:sol=np.rint(res.x).astype(int)
+    if [sum(int(sol[j]) for j in full),sum(int(sol[j]) for j in core),
+        sum(int(sol[j]) for j in extras.values()),sum(int(sol[j]) for j in gold.values())]!=stages:
+        raise AssertionError('Thay đổi điểm ưu tiên của các cấp trên.')
+    if any(int(sol[extras[row['event_index']-1]])!=row['bought'] for row in early_market_priority):
+        raise AssertionError('Thay đổi ưu tiên Chợ sớm.')
     # Recover exact daily balances of the deferred-to-deadline plan.
     daily=[];q=data['initial_quartz'];s=data['initial_silver'];gold_total=0
     for di,d in enumerate(days):
@@ -299,6 +316,8 @@ def optimize(raw):
         last=week_rows[-1]
         event_results.append({**w,'core_bought':int(sol[core[i]]),'core_complete':int(sol[core[i]])==w['core_units'],
             'bonus_bought':int(sol[extras[i]]) if i in extras else 0,
+            'bonus_missed':15-int(sol[extras[i]]) if i in extras else 0,
+            'bonus_reason':('Giới hạn tài nguyên/hạn mức sau khi ưu tiên sự kiện cốt lõi, tổng lượt Chợ và tổng vàng. Các Chợ sớm đã được ưu tiên trước.' if i in extras and int(sol[extras[i]])<15 else ''),
             'silver_spent':spent_s,'quartz_spent':spent_q,
             'quartz_after_event':last['quartz_balance'],'silver_after_event':last['silver_balance'],
             'completion_date':max((p['date'] for p in event_purchases),default=None),
@@ -340,7 +359,7 @@ def optimize(raw):
         quartz_event_spent=total_quartz_event,silver_event_spent=total_silver_event,
         quartz_end=q_end,silver_end=s_end,
         note='Sự kiện chỉ mở từ thứ Ba. Trường bắn kết thúc thứ Bảy; ba sự kiện còn lại Chủ nhật. Thu nhập boss thứ Hai, thu liên minh và xưởng trong ngày; vàng cuối tháng. Sự kiện cuối kết thúc trọn vẹn Chủ nhật 30/04/2028.')
-    return {'input':{k:v for k,v in data.items() if k!='boss_entries'},'boss_entries':data['boss_entries'],
+    return {'early_market_priority':early_market_priority, 'priority_rule':'core > total market bonus > total gold > earliest market > scheduling','input':{k:v for k,v in data.items() if k!='boss_entries'},'boss_entries':data['boss_entries'],
         'totals':totals,'events':event_results,'months':monthly,'transactions':transactions,
         'transaction_days':group_transactions(transactions,daily),
         'purchases':purchases,'checkpoints':daily,'daily':daily,'stages':stages,'months_count':len(months)}

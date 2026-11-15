@@ -70,7 +70,7 @@ async function calculate(){try{
 function render(){if(!result)return;const t=result.totals;const q=t.quartz_total;
   const cards=[
     ['Đủ phần thưởng cốt lõi',`${t.core_complete}/${t.core_total}`,'Sự kiện tuần được hoàn thành','green','✦'],
-    ['Chợ lấp lánh bổ sung',`${t.bonus_bought}/${t.bonus_max}`,'Lượt 10.000 bạc đã mua','purple','◇'],
+    ['Chợ lấp lánh bổ sung',`${t.bonus_bought}/${t.bonus_max}`,'Đã ưu tiên các Chợ diễn ra sớm nhất','purple','◇'],
     ['Khối vàng mua thêm',fmt(t.gold_gained),`${fmt(t.gold_times)} lượt đổi vàng`,'gold','◆'],
     ['Đá tím có thể sử dụng',fmt(q),'Bao gồm số dư đầu kỳ và toàn bộ nguồn thu','blue','◈'],
     ['Bạc đổi trong kỳ',fmt(t.silver_exchanged),'Đã kiểm tra hạn mức từng tháng','','▣'],
@@ -80,8 +80,8 @@ function render(){if(!result)return;const t=result.totals;const q=t.quartz_total
   ];
   el('kpiCards').innerHTML=cards.map(([name,val,desc,cls,icon])=>`<article class="kpi ${cls}"><span class="kpi-icon">${icon}</span><div class="kpi-name">${html(name)}</div><div class="kpi-val">${val}</div><div class="kpi-desc">${html(desc)}</div></article>`).join('');
   el('referenceBadge').textContent=`Boss tham chiếu ${Number(result.input.damage_g).toFixed(3).replace(/\.?0+$/,'')}G`;
-  renderTable('weeksTable',['Tuần','Mở sự kiện (T3)','Hạn chót','Sự kiện','Hoàn thành ngày','Boss (G)','Đá boss','Liên minh','Xưởng','Cốt lõi','Lượt còn thiếu','Chợ thêm','Bạc chi','Đá chi','Số ngày mua','Trạng thái'],yearRows(result.events).map(e=>[
-    e.index,dateFmt(e.event_start),dateFmt(e.deadline),html(e.event),e.completion_date?dateFmt(e.completion_date):'Chưa hoàn thành',Number(e.damage_g).toFixed(3),fmt(e.reward_boss),fmt(e.mission_income),fmt(e.workshop_income),`${e.core_bought}/${e.core_units}`,e.core_units-e.core_bought,e.event==='Chợ lấp lánh'?`${e.bonus_bought}/15`:'·',fmt(e.silver_spent),fmt(e.quartz_spent),e.purchase_days,e.core_complete?'<span class="badge-ok">Đạt cốt lõi</span>':'<span class="badge-warn">Thiếu cốt lõi</span>'
+  renderTable('weeksTable',['Tuần','Mở sự kiện (T3)','Hạn chót','Sự kiện','Hoàn thành ngày','Boss (G)','Đá boss','Liên minh','Xưởng','Cốt lõi','Lượt còn thiếu','Chợ thêm','Lượt Chợ bỏ','Bạc chi','Đá chi','Số ngày mua','Trạng thái'],yearRows(result.events).map(e=>[
+    e.index,dateFmt(e.event_start),dateFmt(e.deadline),html(e.event),e.completion_date?dateFmt(e.completion_date):'Chưa hoàn thành',Number(e.damage_g).toFixed(3),fmt(e.reward_boss),fmt(e.mission_income),fmt(e.workshop_income),`${e.core_bought}/${e.core_units}`,e.core_units-e.core_bought,e.event==='Chợ lấp lánh'?`${e.bonus_bought}/15`:'·',e.event==='Chợ lấp lánh'?(e.bonus_missed?`<span class="badge-warn" title="${html(e.bonus_reason)}">${e.bonus_missed} lượt</span>`:'0'):'·',fmt(e.silver_spent),fmt(e.quartz_spent),e.purchase_days,e.core_complete?'<span class="badge-ok">Đạt cốt lõi</span>':'<span class="badge-warn">Thiếu cốt lõi</span>'
   ]));
   renderTransactions();
   renderTable('dailyTable',['Ngày','Thứ','Boss','Liên minh','Xưởng','Đổi bạc','Bạc chi sự kiện','Đá chi sự kiện','Lượt đổi vàng','Đá cuối ngày','Bạc cuối ngày'],yearRows(result.daily).map(d=>[

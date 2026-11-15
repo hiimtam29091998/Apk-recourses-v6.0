@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Khoáng Thạch | Kế hoạch bạc &amp; vàng</title>
+  <title>Khoáng Thạch v6.1 | Ưu tiên Chợ sớm</title>
   <link rel="stylesheet" href="./app.css">
 </head>
 <body>
@@ -45,7 +45,7 @@
             <label><span>Dự báo sát thương</span><select id="mode"><option value="fixed">Giữ cố định</option><option value="growth">Tăng trưởng theo tháng</option><option value="manual">Nhập thực tế từng tuần</option></select><small>Không tự tính xác suất chí mạng</small></label>
             <label><span>Thay đổi sát thương mỗi tháng (G)</span><input id="growth" type="number" step="0.01" min="-1" max="1" value="0.04"><small>Chỉ dùng chế độ tăng trưởng</small></label>
             <label><span>Thời điểm hoàn thành sự kiện</span><select id="completionMode"><option value="auto">Tự động: ưu tiên thứ Bảy</option><option value="early">Mua dần sớm nhất có thể</option><option value="sunday">Để ngày kết thúc sự kiện</option></select><small>Chỉ mua từ thứ Ba; Trường bắn tới thứ Bảy</small></label>
-            <div class="calculate-wrap"><button id="calculate" class="btn primary">✧ TÍNH KẾ HOẠCH</button><span class="calculation-hint">Bốn tầng ưu tiên tối ưu, kiểm tra không âm và hạn mức</span></div>
+            <div class="calculate-wrap"><button id="calculate" class="btn primary">✧ TÍNH KẾ HOẠCH</button><span class="calculation-hint">Tối ưu từ điển: cốt lõi → tổng lượt Chợ → vàng → Chợ sớm</span></div>
           </div>
           <div class="action-row"><button id="importJson" class="text-btn">⇧ Nhập hồ sơ JSON</button><input type="file" accept=".json,application/json" id="jsonFile" hidden><span id="saveStatus" class="save-status">Hồ sơ được lưu trên điện thoại</span></div>
         </section>
@@ -59,7 +59,7 @@
               <article class="panel chart-panel"><div class="panel-head"><h3>Đá tím &amp; số dư cuối tháng</h3><span class="chip subtle">18 tháng</span></div><div id="quartzChart" class="chart"></div></article>
               <article class="panel chart-panel"><div class="panel-head"><h3>Khối vàng mua theo tháng</h3><span class="chip subtle">Mỗi lượt = 500 vàng</span></div><div id="goldChart" class="chart"></div></article>
             </div>
-            <article class="panel"><div class="panel-head"><h3>Quy tắc ưu tiên đang áp dụng</h3></div><div class="priorities"><div><span>01</span><b>Phần thưởng cốt lõi</b><small>6 × 5.000 ở Chợ, cùng 3 sự kiện còn lại</small></div><div><span>02</span><b>Phần thưởng Chợ bổ sung</b><small>Tối đa 15 × 10.000 cho mỗi Chợ</small></div><div><span>03</span><b>Khối vàng</b><small>Đổi từ đá tím dư, tối đa 24 lượt/tháng</small></div></div></article>
+            <article class="panel"><div class="panel-head"><h3>Quy tắc ưu tiên đang áp dụng</h3></div><div class="priorities"><div><span>01</span><b>Phần thưởng cốt lõi</b><small>6 × 5.000 ở Chợ, cùng 3 sự kiện còn lại</small></div><div><span>02</span><b>Phần thưởng Chợ bổ sung</b><small>Tối đa 15 × 10.000 cho mỗi Chợ</small></div><div><span>03</span><b>Khối vàng</b><small>Đổi từ đá tím dư, tối đa 24 lượt/tháng</small></div><div><span>04</span><b>Ưu tiên Chợ sớm nhất</b><small>Giữ nguyên số lượt và tổng vàng; đẩy lượt phải bỏ về các Chợ muộn nhất có thể</small></div></div></article>
           </section>
           <section id="tab-weeks" class="tabview"><div class="section-heading top-gap"><div><span class="eyebrow dark">76 LẦN SỰ KIỆN</span><h2>Lịch phần thưởng theo tuần</h2></div></div><div class="panel table-panel"><div class="table-scroll"><table id="weeksTable"></table></div></div></section>
           <section id="tab-transactions" class="tabview">
@@ -82,7 +82,7 @@
             <h3>1. Nhập dữ liệu của bạn</h3><p>Điền số đá tím và bạc hiện còn tại hết ngày 15/11/2026, số bạc và lượt vàng đã đổi trong tháng 11. Chọn sát thương boss mặc định hoặc mô hình tăng trưởng, rồi bấm <b>Tính kế hoạch</b>.</p>
             <h3>2. Cập nhật boss thứ Hai</h3><p>Ở mục Boss, nhập điểm tốt nhất hoặc tối đa 20 lượt đánh. Ứng dụng lấy giá trị lớn nhất và tính số đá theo từng mốc sát thương hoàn chỉnh. Tuần chưa nhập được dự báo theo cấu hình.</p>
             <h3>3. Theo dõi giao dịch</h3><p>Trong mục Đổi bạc / vàng, chế độ mặc định gộp mọi thao tác cùng ngày thành một dòng; nhấn xem chi tiết để kiểm tra các lượt mua. Lịch đổi bạc xét các ngày phù hợp trong tuần, nhất là thứ Hai, thứ Bảy, Chủ nhật và ranh giới tháng. Mỗi lần đổi bạc ít nhất 5.000 đá. Đá từ nhiệm vụ và xưởng được ghi nhận cuối ngày. Không bắt buộc thanh toán vào thứ Hai. Mọi sự kiện mở thứ Ba; Trường bắn phải hoàn thành chậm nhất thứ Bảy, ba sự kiện còn lại chậm nhất Chủ nhật. Thứ Hai được đánh boss và đổi bạc/vàng nhưng không được mua phần thưởng.</p>
-            <h3>4. Quy tắc tính toán</h3><p>Phân bổ tối ưu theo thứ tự: tối đa số sự kiện hoàn thành toàn bộ phần cốt lõi, tối đa số lượt cốt lõi, tối đa lượt Chợ bổ sung, tối đa lượt vàng. Bộ giải dùng quy hoạch nguyên, không phải chia trung bình tháng. Lượt vàng được gom mua vào cuối tháng để vẫn hưởng hạn mức tháng đó.</p>
+            <h3>4. Quy tắc tính toán</h3><p>Phân bổ tối ưu theo thứ tự: tối đa số sự kiện hoàn thành toàn bộ phần cốt lõi, tối đa số lượt cốt lõi, tối đa lượt Chợ bổ sung, tối đa lượt vàng; rồi ưu tiên Chợ sớm nhất theo thứ tự thời gian. Các lượt bắt buộc phải bỏ sẽ phân bổ về các Chợ muộn nhất có thể. Bộ giải dùng quy hoạch nguyên, không phải chia trung bình tháng. Lượt vàng được gom mua vào cuối tháng để vẫn hưởng hạn mức tháng đó.</p>
             <h3>5. Dữ liệu và sao lưu</h3><p>Hồ sơ được lưu trong trình duyệt trên máy bạn. Nên định kỳ bấm <b>Sao lưu hồ sơ</b> để tải tệp JSON. Khi đổi máy hoặc đổi trình duyệt, dùng <b>Nhập hồ sơ JSON</b>. Lệnh Xuất CSV tạo ZIP gồm 10 bảng CSV. Bảng 04 gộp mỗi ngày giao dịch thành một dòng; bảng 09 giữ từng giao dịch để kiểm tra; bảng 08 giữ đủ 532 ngày thu chi. Có thể xuất XLSX trực tiếp và in PDF tiếng Anh hoặc tiếng Trung phồn thể bằng nút trên cùng (chọn Save as PDF trong trình duyệt).</p>
             <h3>6. Lưu ý giới hạn</h3><p>Ứng dụng tính riêng khoảng 16/11/2026–30/04/2028. Tuần cuối mở Chợ lấp lánh ngày 25/04/2028 và đóng ngày Chủ nhật 30/04/2028; bao gồm đầy đủ ngày nhuận 29/02/2028. Nguồn đá dưới 1G hoặc trên 10G chưa có quy tắc đầy đủ; mô hình chỉ tính bậc đã cung cấp. Xưởng giả định thu đủ 147 đá mỗi 3 giờ, tổng 1.176 đá mỗi ngày.</p>
             <p class="help-note">Phiên bản Android: Tối ưu offline bằng HiGHS WebAssembly trên điện thoại. Chaquopy và XlsxWriter chỉ sử dụng để xuất bảng Excel/CSV. Không cần Python server, tài khoản hay Internet khi sử dụng.</p>
