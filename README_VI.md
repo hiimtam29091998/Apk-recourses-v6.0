@@ -1,81 +1,63 @@
-# KHOÁNG THẠCH MOBILE v6.1 (Android, offline)
+# KHOÁNG THẠCH MOBILE V7.0 | Android offline + HiGHS WebAssembly
 
-**Mục tiêu:** Biên dịch APK thật cho Samsung Galaxy S23 Ultra, không cần SciPy trên Android.
+**Trạng thái:** Mã nguồn và kiểm thử trên môi trường xây dựng đã chuẩn bị. **Chưa có APK được biên dịch và xác minh trên thiết bị** trong môi trường này. GitHub Actions sẽ tải gói HiGHS WebAssembly và biên dịch APK.
 
-- Bộ tối ưu nguyên hỗn hợp (MILP) đã chuyển từ Python/SciPy sang JavaScript + **HiGHS WebAssembly 1.15.4**.
-- Android chạy solver trên **Web Worker** của WebView. Khi sử dụng, không cần Internet hay Python server.
-- Python/Chaquopy chỉ còn dùng **XlsxWriter** để xuất XLSX/CSV; không cài NumPy hoặc SciPy.
-- Giữ các hồ sơ người chơi trong localStorage, sao lưu/nhập JSON, giao dịch gộp theo ngày và PDF song ngữ.
-- Lịch 16/11/2026–30/04/2028: 532 ngày, 76 sự kiện, 19 Chợ lấp lánh.
+## Thay đổi so với v6.1
 
-## Build APK trên GitHub Actions (được khuyến nghị)
+1. **Ngày bắt đầu** và **ngày đích** do người dùng nhập, không cố định ngày 30/04/2028.
+2. Nhập số dư **đá tím và bạc thực tế ĐẦU NGÀY**. Hôm đó chưa nhận thưởng boss, liên minh hay xưởng. Không cộng lại thu nhập của các ngày trước.
+3. Nhập số bạc **đã đổi trong tháng bắt đầu** (0-250.000), lượt đổi vàng **đã dùng trong tháng bắt đầu** (0-24), không nhầm bạc tồn với hạn mức tháng.
+4. Nếu đang ở giữa một sự kiện, nhập số **lượt cốt lõi và lượt Chợ bổ sung đã mua trước ngày chốt**. Không trừ phí các lượt đã mua thêm lần nữa. Phần thưởng cũ đã được phản ánh vào số dư đầu ngày.
+5. Ngôn ngữ giao diện **vi, en, zh-Hant (phồn thể), ja**; ngôn ngữ báo cáo riêng, có thể đổi mà không mất hồ sơ.
+6. Ghi nhiều snapshot kế hoạch cho từng người chơi, so sánh/khôi phục kế hoạch trước.
+7. Excel/CSV/PDF dựa trên kỳ đang chọn; PDF tạo từ hộp thoại in Android.
 
-1. Cập nhật toàn bộ tệp trong gói dự án lên **cấp gốc** của repository `Apk-recourses-v5.0`, bao gồm `.github/workflows/build-apk.yml` và thư mục `app`.
-2. Vào **Actions → Build Khoang Thach Android APK (HiGHS WASM) → Run workflow** (hoặc commit vào nhánh main để tự kích hoạt).
-3. Workflow sẽ tải gói `highs@1.15.4` từ npm **trong lúc build**, sao chép `highs.js` và `highs.wasm` vào Android assets, kiểm tra solver thực trên Node, chạy kiểm thử xuất file và biên dịch APK bằng Gradle.
-4. **Chỉ khi Actions báo dấu tích xanh**, tải artifact `Khoang-Thach-Mobile-HiGHS-WASM-APK`, giải nén và cài `app-debug.apk` trên Samsung.
+## Thứ tự tối ưu
 
-> Bản ZIP này **không phải APK**. Nó chứa mã nguồn và quy trình build. Vì môi trường tạo tệp ở ChatGPT không có Android SDK và không thể truy cập npm để biên dịch, APK chỉ được xác nhận khi GitHub Actions thành công. Nếu workflow báo đỏ, cần đọc log trước khi thử cài.
+Đạt số sự kiện cốt lõi tối đa → đạt số lượt cốt lõi tối đa → mua tối đa tổng lượt Chợ bổ sung → mua tối đa vàng → ưu tiên các Chợ sớm nhất → tối ưu thời điểm đổi vàng.
 
-### Cập nhật bằng Codespaces trên điện thoại
+Sử dụng **MILP HiGHS WASM trong Web Worker** hoàn toàn offline trên Android. Không gỡ bỏ thuật toán hay đổi sang heuristic. Phần xuất XLSX/CSV dùng Python Chaquopy và XlsxWriter, không có SciPy trên điện thoại.
 
-Tải `KhoangThach_Mobile_v6_HiGHS_WASM_PATCH.zip` vào thư mục gốc Codespaces đang mở. Trong Terminal:
+## Hạn chế đã xác định
 
-```bash
-unzip -o KhoangThach_Mobile_v6_HiGHS_WASM_PATCH.zip
-bash tools/apply_patch.sh
-rm KhoangThach_Mobile_v6_HiGHS_WASM_PATCH.zip
-git add -A
-git commit -m "Port MILP optimizer to offline HiGHS WebAssembly"
-git push origin main
-```
+- Quy luật sự kiện được suy ra từ chu kỳ bắt đầu **16/11/2026**; chưa có nguồn game xác nhận chu kỳ trước thời điểm này nên ngày bắt đầu phải từ **16/11/2026** trở đi.
+- Giới hạn thực dụng tối đa **10 năm** cho mỗi lần lập kế hoạch; với khoảng rất dài mô hình MILP có thể tốn RAM và thời gian. HiGHS phải chứng minh được nghiệm tối ưu, nếu không ứng dụng báo lỗi thay vì tạo lịch không kiểm chứng.
+- Tài nguyên được tính theo **từng ngày**, không theo từng giờ; xưởng giả định thu đủ 8 lần (147 đá/lần) trong ngày. Nếu dự kiến dùng số đá kiếm được trong ngày, cần thực hiện giao dịch **sau khi thực nhận**; không phải có 1.176 đá ngay từ 00:00.
+- Vàng được gom vào cuối tháng hoặc ngày đích, không bắt buộc người chơi phải đổi đúng một lượt tại thời điểm đó.
+- Nếu phiên bản Android mới dùng khóa ký debug khác, có thể cần gỡ phiên bản cũ. **Sao lưu JSON trước khi thay phiên bản**.
+- Đã kiểm thử đối chiếu mô hình JS↔Python bằng SciPy trên 6 trường hợp ngắn và Python với trường hợp cũ 532 ngày. **Chưa chạy HiGHS WASM bản npm thật trong môi trường này**, nên cần dựa trên kết quả GitHub Actions.
 
-**Lưu ý:** Không tải ZIP như một tệp riêng vào repository rồi chạy workflow. Phải giải nén để giữ cấu trúc `app/...` và `.github/workflows/...`. Nên sao lưu hồ sơ JSON trước khi cập nhật ứng dụng Android; bản debug mới có thể được ký bằng khóa khác nên đôi khi cần gỡ bản cũ.
+## Build APK bằng GitHub Actions
 
-## Kiểm thử / kết quả đã kiểm chứng ở môi trường Python
+1. Tải ZIP **mã nguồn Android v7.0**, giải nén **vào thư mục gốc** repository có nhánh `main`, đảm bảo thấy `.github/workflows/build-apk.yml`, `app/`, `tests/` và `build.gradle` ở cùng cấp.
+2. Commit và push; hoặc vào tab **Actions → Build Khoang Thach Android APK (HiGHS WASM) → Run workflow**.
+3. Workflow cài Android SDK và Gradle, tải npm `highs@1.15.4` trong CI, kiểm tra thuật toán v7 trên SciPy, giải HiGHS WASM thực, thử export Python, biên dịch APK.
+4. Khi tất cả bước hoàn tất màu xanh, tải artifact **Khoang-Thach-Mobile-HiGHS-WASM-APK**, giải nén và cài `app-debug.apk`.
+5. Nếu lần build đỏ, mở job `android`, gửi nội dung bước lỗi. Chưa có APK nếu bước Upload artifact bị bỏ qua.
 
-- 23/23 bài thử v5 Python gốc đạt.
-- Mô hình JS được đưa vào bộ giải SciPy/HiGHS thông qua một adapter kiểm thử độc lập: 3/3 cấu hình đối chiếu được 4 cấp ưu tiên với v5.
-- Trường hợp mặc định: cốt lõi **76/76**, Chợ bổ sung **281/285**, vàng **152.000**; số dư cuối kỳ **3.604 đá tím**.
-- XlsxWriter và mô-đun xuất CSV đã đọc thành công kết quả JSON do optimizer JavaScript tạo ra.
-- **Chưa biên dịch/kiểm thử APK trên Galaxy S23 Ultra trong môi trường ChatGPT.** GitHub Actions bao gồm bước kiểm thử HiGHS WASM thật ở môi trường Node trước khi build Android.
-
-## Phạm vi & giới hạn kỹ thuật
-
-- Bộ giải Highs.js chạy trong worker, không sử dụng dịch vụ cloud. Dự án **không yêu cầu INTERNET permission** trong AndroidManifest.
-- `app/src/main/assets/highs.js` và `highs.wasm` không nằm trong ZIP nguồn vì chỉ được tải từ npm **khi build**; workflow sẽ đưa trực tiếp vào APK.
-- Module `reference/optimizer_scipy.py` chỉ để đối chiếu trên máy tính, không đóng gói trong APK.
-- Android WebView sử dụng origin ảo `https://appassets.androidplatform.net/assets/` do ứng dụng phục vụ bằng local AssetManager, để Worker và WASM hoạt động dưới HTTPS origin. Đây không phải website yêu cầu kết nối Internet.
-- Các file Python dùng cho xuất Excel/CSV không import SciPy/NumPy.
-
-## Thư viện và bản quyền
-
-HiGHS WebAssembly: https://www.npmjs.com/package/highs (MIT license). Chaquopy: https://chaquo.com/chaquopy/. XlsxWriter: https://xlsxwriter.readthedocs.io/.
-
-Các thành phần có thể yêu cầu người phân phối tuân thủ giấy phép phần mềm tương ứng.
-
-## Mới v6.1: Chợ lấp lánh sớm nhất
-
-Sau khi bộ giải chứng minh tối ưu **(1) số sự kiện đủ cốt lõi, (2) tổng lượt cốt lõi, (3) tổng lượt Chợ bổ sung, (4) tổng số lượt vàng**, ứng dụng chạy tối ưu từ điển theo thứ tự mở Chợ tăng dần. Bất kỳ Chợ nào đạt 15/15 trong một nghiệm khả thi ở các cấp cao hơn đều được khóa ngay; nếu chưa đạt 15, bộ giải MILP chứng minh số lượt cao nhất rồi khóa trước khi qua Chợ sau.
-
-Với hồ sơ mẫu 9.052 đá, boss 5,82G: giữ 76/76 cốt lõi, 281/285 Chợ bổ sung, 152.000 vàng. 18 Chợ đầu đủ 15/15, chỉ Chợ 25/04/2028 mua 11/15.
-
-Với hồ sơ của **Tâm** trong file `Khoang_Thach_Tam.xlsx` (đá đầu kỳ 9.650, boss 5,92G): kết quả giữ 153.000 vàng và chỉ bỏ 4 lượt tại Chợ 25/04/2028. Không hardcode các ngày này vào thuật toán.
-
-Nếu nguồn lực/hạn mức khác, thiếu lượt có thể nằm ở Chợ khác, nhưng bộ giải luôn ưu tiên Chợ sớm một cách chính xác mà không giảm tổng phần thưởng/vàng.
-
-Bảng lịch sự kiện có cột **Lượt Chợ bỏ**. Trong kết quả JSON mới có `early_market_priority` và `priority_rule` để kiểm toán. Toàn bộ hồ sơ localStorage dùng lại khóa cũ, không làm mất dữ liệu người chơi.
-
-### Cập nhật repository có sẵn bằng Codespaces trên điện thoại
-
-Tải gói `KhoangThach_v6_1_PATCH_GitHub.zip` vào thư mục gốc repository rồi chạy:
+### Commands trên Codespaces (đã tải ZIP nguồn lên thư mục gốc)
 
 ```bash
-unzip -o KhoangThach_v6_1_PATCH_GitHub.zip
-rm KhoangThach_v6_1_PATCH_GitHub.zip
+cd "$(git rev-parse --show-toplevel)"
+unzip -o KhoangThach_v7_Android_Source.zip
+rm KhoangThach_v7_Android_Source.zip
 git add -A
-git commit -m "Prioritize earlier Sparkling Markets without sacrificing gold"
-git push origin main
+git commit -m "Upgrade Khoang Thach to v7 dynamic multilingual planner"
+git push origin HEAD:main
 ```
 
-Workflow GitHub Actions sẽ test HiGHS WASM và biên dịch APK. **Chỉ tải APK khi workflow báo xanh**; code ZIP không phải là APK.
+**Nếu đang ở repo v6.1**, thay bằng gói `KhoangThach_v7_PATCH_GitHub.zip`, chạy các lệnh tương tự với tên file PATCH. Không giải nén cả hai gói lên cùng repository nếu không cần.
+
+## Chạy kiểm thử thuật toán ở máy Linux/Codespaces
+
+```bash
+python -m pip install 'scipy>=1.11,<2' xlsxwriter
+node tests/test_v7_dynamic.js
+python tests/test_export_schema.py
+```
+
+Nếu có kết nối Internet, CI sẽ tải WASM và chạy `node tests/test_highs_wasm_node.cjs` trước khi biên dịch APK. Không phải kết quả kiểm thử SciPy đủ để khẳng định ứng dụng Android chạy được.
+
+## Quyền riêng tư
+
+Ứng dụng Android không yêu cầu quyền Internet. Hồ sơ, kế hoạch và cài đặt ngôn ngữ được lưu trên thiết bị; sao lưu JSON do người dùng thực hiện. Dữ liệu không gửi đến dịch vụ bên ngoài khi tính toán.

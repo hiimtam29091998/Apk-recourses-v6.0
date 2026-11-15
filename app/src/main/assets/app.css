@@ -39,3 +39,10 @@
   .modal textarea{font-size:16px}
 }
 @media(max-width:400px){.kpi .kpi-val{font-size:19px}.hero h1{font-size:22px}}
+/* Khoáng Thạch 7.0: four-language dynamic period */
+.lang-picker{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:#657492}
+.lang-picker select{border:1px solid #d9deea;border-radius:9px;padding:8px 7px;background:#fff;max-width:125px;color:#33405e}
+.snapshot-picker{display:flex;gap:10px;flex-wrap:wrap;margin:13px 0}.snapshot-picker select{min-width:180px;max-width:45%;border:1px solid #dbe0eb;background:white;padding:10px;border-radius:9px}
+#snapshotsTable{border-collapse:collapse;width:100%;font-size:12px}#snapshotsTable th,#snapshotsTable td{border-bottom:1px solid #e5e9f2;padding:10px;text-align:left}
+#planComparison{margin:12px 0}#planComparison table{width:100%;border-collapse:collapse}#planComparison td,#planComparison th{border:1px solid #e3e8f3;padding:10px;text-align:right}#planComparison td:first-child{text-align:left}
+@media(max-width:740px){.top-actions .lang-picker{flex:0 0 auto}.lang-picker select{max-width:115px}.snapshot-picker select{max-width:100%;width:100%}.snapshot-picker{display:grid;grid-template-columns:1fr}.snapshot-picker button{width:100%}.form-grid label span{font-size:11px}}

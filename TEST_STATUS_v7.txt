@@ -1,0 +1,22 @@
+KHOÁNG THẠCH V7.0 – KẾT QUẢ THỰC TẾ (15/11/2026)
+
+ĐẠT: Python và JS models đối chiếu bằng SciPy/HiGHS trong 6 hồ sơ động:
+- Chốt đầu ngày sự kiện đang diễn ra
+- Có bạc tồn và đã dùng một phần hạn mức tháng
+- Chỉ có ngày boss
+- Mua trước một phần cốt lõi và Chợ bổ sung
+- Bắt đầu sát hạn ngày cuối sự kiện
+- Đi qua tháng 12 -> 1, hạn mức tháng bắt đầu đã hết.
+ĐẠT: JavaScript model kịch bản gốc 532 ngày:
+- stages [76,361,281,304]
+- core 76/76, market 281/285, gold 152000, final amethyst 3604
+- 4 lượt thiếu nằm ở Chợ 25/04/2028.
+ĐẠT: Test API local Web/Windows 200 cho GET và POST /api/optimize,
+POST /api/excel, POST /api/export ở cả vi/en/zh-Hant/ja; XLSX và ZIP CSV hợp lệ.
+ĐẠT: Bộ mẫu PDF 4 ngôn ngữ, mỗi file 1 trang; đã render kiểm tra font CJK.
+ĐẠT: Node --check JavaScript; Python compileall.
+CHƯA XÁC MINH: HiGHS WASM tải từ npm và chạy trên WebView Android thật;
+CHƯA XÁC MINH: build APK Gradle và cài trên điện thoại.
+BƯỚC TIẾP THEO: chạy CI của GitHub Actions được cung cấp trong nguồn.
+LƯU Ý: trình duyệt sandbox của môi trường này chặn truy cập http://127.0.0.1
+nên chỉ thử API trực tiếp, chưa hoàn tất kiểm thử UI tự động trên Chromium.

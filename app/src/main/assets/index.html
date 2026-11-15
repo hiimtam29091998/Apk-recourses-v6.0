@@ -1,98 +1,54 @@
 <!doctype html>
-<html lang="vi">
-<head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Khoáng Thạch v6.1 | Ưu tiên Chợ sớm</title>
-  <link rel="stylesheet" href="./app.css">
-</head>
-<body>
-  <div class="app-frame">
-    <aside class="sidebar">
-      <div class="brand"><div class="brand-mark">◆</div><div><b>KHOÁNG THẠCH</b><small>RESOURCE PLANNER</small></div></div>
-      <div class="sidebar-label">ĐIỀU HƯỚNG</div>
-      <nav class="nav">
-        <button class="nav-btn active" data-tab="overview">◫ <span>Tổng quan</span></button>
-        <button class="nav-btn" data-tab="weeks">▦ <span>Lịch sự kiện</span></button>
-        <button class="nav-btn" data-tab="transactions">↔ <span>Đổi bạc / vàng</span></button>
-        <button class="nav-btn" data-tab="daily">▦ <span>Thu chi mỗi ngày</span></button>
-        <button class="nav-btn" data-tab="months">▤ <span>Theo tháng</span></button>
-        <button class="nav-btn" data-tab="boss">✦ <span>Boss thạch anh</span></button>
-        <button class="nav-btn" data-tab="help">ⓘ <span>Hướng dẫn</span></button>
-      </nav>
-      <div class="aside-bottom"><div class="offline-dot"></div>Ứng dụng Android độc lập<br><small>Không gửi dữ liệu ra Internet</small></div>
-    </aside>
-    <div class="workspace">
-      <header class="topbar">
-        <div class="breadcrumb">GAME TOOLKIT <span>/</span> <strong id="currentSection">Tổng quan</strong></div>
-        <div class="top-actions"><span class="offline-pill">● OFFLINE</span><button id="exportCsv" class="btn ghost">⇩ Xuất CSV</button><button id="exportExcel" class="btn ghost">⇩ Xuất Excel</button><button id="pdfEn" class="btn ghost">▣ PDF EN</button><button id="pdfZh" class="btn ghost">▣ PDF 繁體</button><button id="exportJson" class="btn ghost">⇩ Sao lưu hồ sơ</button></div>
-      </header>
-      <main>
-        <section class="hero">
-          <div class="hero-copy"><span class="eyebrow">TỐI ƯU HÓA THEO NGÀY</span><h1>Mỗi viên đá đều có kế hoạch.</h1>
-            <p>Ưu tiên phần thưởng cốt lõi, tối đa hóa Chợ lấp lánh, rồi biến phần đá dư thành vàng. Sự kiện mở từ thứ Ba; Trường bắn đóng thứ Bảy, ba sự kiện còn lại đóng Chủ nhật. Có thể mua dần trong những ngày mở sự kiện.</p>
-            <div class="period">◷ 16/11/2026 <span>→</span> 30/04/2028 <span class="dot-sep">·</span> 76 tuần sự kiện</div>
-          </div>
-          <div class="hero-decoration" aria-hidden="true"><div class="gem g1"></div><div class="gem g2"></div><div class="gem g3"></div></div>
-        </section>
-        <section class="setup-panel">
-          <div class="section-heading"><div><span class="eyebrow dark">CẤU HÌNH</span><h2>Hồ sơ &amp; tài nguyên ban đầu</h2></div><div class="profile-controls"><select id="profiles"></select><button id="profileAdd" title="Tạo hồ sơ">＋</button><button id="profileClone" title="Nhân bản hồ sơ">⧉</button><button id="profileRename" title="Đổi tên">✎</button><button id="profileDelete" title="Xóa hồ sơ">×</button></div></div>
-          <div class="form-grid">
-            <label><span>Đá tím cuối 15/11/2026</span><input id="initialQuartz" inputmode="numeric" type="number" step="1" min="0" value="9052"><small>Đã bao gồm boss tuần trước</small></label>
-            <label><span>Bạc còn lại cuối 15/11</span><input id="initialSilver" type="number" step="1" min="0" value="0"><small>Có thể chuyển từ tháng trước</small></label>
-            <label><span>Bạc đã đổi trong 11/2026</span><input id="silverNov" type="number" min="0" max="250000" value="70000"><small>Tối đa cả tháng: 250.000</small></label>
-            <label><span>Lượt vàng đã đổi 11/2026</span><input id="goldNov" type="number" min="0" max="24" value="6"><small>Mỗi lượt = 500 vàng</small></label>
-            <label><span>Boss tham chiếu (G)</span><input id="damage" type="number" min="0" max="10" step="0.001" value="5.82"><small>Điểm tốt nhất trong 20 lượt</small></label>
-            <label><span>Dự báo sát thương</span><select id="mode"><option value="fixed">Giữ cố định</option><option value="growth">Tăng trưởng theo tháng</option><option value="manual">Nhập thực tế từng tuần</option></select><small>Không tự tính xác suất chí mạng</small></label>
-            <label><span>Thay đổi sát thương mỗi tháng (G)</span><input id="growth" type="number" step="0.01" min="-1" max="1" value="0.04"><small>Chỉ dùng chế độ tăng trưởng</small></label>
-            <label><span>Thời điểm hoàn thành sự kiện</span><select id="completionMode"><option value="auto">Tự động: ưu tiên thứ Bảy</option><option value="early">Mua dần sớm nhất có thể</option><option value="sunday">Để ngày kết thúc sự kiện</option></select><small>Chỉ mua từ thứ Ba; Trường bắn tới thứ Bảy</small></label>
-            <div class="calculate-wrap"><button id="calculate" class="btn primary">✧ TÍNH KẾ HOẠCH</button><span class="calculation-hint">Tối ưu từ điển: cốt lõi → tổng lượt Chợ → vàng → Chợ sớm</span></div>
-          </div>
-          <div class="action-row"><button id="importJson" class="text-btn">⇧ Nhập hồ sơ JSON</button><input type="file" accept=".json,application/json" id="jsonFile" hidden><span id="saveStatus" class="save-status">Hồ sơ được lưu trên điện thoại</span></div>
-        </section>
-        <div id="notice" class="notice hidden" role="status"></div>
-        <div id="loading" class="loading hidden"><span class="spinner"></span>Đang giải bài toán tối ưu và kiểm tra tồn kho...</div>
-        <div id="output" class="output hidden"><div class="year-filter-bar"><label for="yearFilter">Lọc dữ liệu năm</label><select id="yearFilter"><option value="all">Toàn kỳ (2026–2028)</option><option value="2026">2026</option><option value="2027">2027</option><option value="2028">2028</option></select><small>Chỉ lọc bảng và biểu đồ; tổng KPI vẫn tính toàn kỳ.</small></div>
-          <section id="tab-overview" class="tabview active">
-            <div class="section-heading top-gap"><div><span class="eyebrow dark">KẾT QUẢ TỐI ƯU</span><h2>Bức tranh toàn kỳ</h2></div><span id="referenceBadge" class="chip">Boss tham chiếu</span></div>
-            <div id="kpiCards" class="kpi-grid"></div>
-            <div class="two-columns">
-              <article class="panel chart-panel"><div class="panel-head"><h3>Đá tím &amp; số dư cuối tháng</h3><span class="chip subtle">18 tháng</span></div><div id="quartzChart" class="chart"></div></article>
-              <article class="panel chart-panel"><div class="panel-head"><h3>Khối vàng mua theo tháng</h3><span class="chip subtle">Mỗi lượt = 500 vàng</span></div><div id="goldChart" class="chart"></div></article>
-            </div>
-            <article class="panel"><div class="panel-head"><h3>Quy tắc ưu tiên đang áp dụng</h3></div><div class="priorities"><div><span>01</span><b>Phần thưởng cốt lõi</b><small>6 × 5.000 ở Chợ, cùng 3 sự kiện còn lại</small></div><div><span>02</span><b>Phần thưởng Chợ bổ sung</b><small>Tối đa 15 × 10.000 cho mỗi Chợ</small></div><div><span>03</span><b>Khối vàng</b><small>Đổi từ đá tím dư, tối đa 24 lượt/tháng</small></div><div><span>04</span><b>Ưu tiên Chợ sớm nhất</b><small>Giữ nguyên số lượt và tổng vàng; đẩy lượt phải bỏ về các Chợ muộn nhất có thể</small></div></div></article>
-          </section>
-          <section id="tab-weeks" class="tabview"><div class="section-heading top-gap"><div><span class="eyebrow dark">76 LẦN SỰ KIỆN</span><h2>Lịch phần thưởng theo tuần</h2></div></div><div class="panel table-panel"><div class="table-scroll"><table id="weeksTable"></table></div></div></section>
-          <section id="tab-transactions" class="tabview">
-            <div class="section-heading top-gap"><div><span class="eyebrow dark">GIAO DỊCH ĐƯỢC ĐỀ XUẤT</span><h2>Ngày đổi bạc và mua vàng</h2></div><span id="txCount" class="chip subtle">Một dòng mỗi ngày giao dịch</span></div>
-            <div class="tx-toolbar">
-              <label>Chế độ xem
-                <select id="txView"><option value="summary">Tổng hợp theo ngày (mặc định)</option><option value="detail">Chi tiết từng giao dịch</option></select>
-              </label>
-              <label>Lọc hoạt động
-                <select id="txFilter"><option value="all">Tất cả giao dịch</option><option value="silver">Chỉ đổi bạc</option><option value="gold">Chỉ mua vàng</option><option value="events">Chỉ chi sự kiện</option></select>
-              </label>
-            </div>
-            <div class="info-strip">Mỗi ngày có giao dịch chỉ hiển thị <b>một dòng</b>. Đá đổi bạc và bạc chi mua phần thưởng là hai cột riêng. Chọn <b>Chi tiết</b> để xem từng lượt mua; những ngày chỉ có thu nhập nằm trong mục <b>Thu chi mỗi ngày</b>.</div>
-            <div class="panel table-panel"><div class="table-scroll"><table id="txTable"></table></div></div>
-          </section>
-          <section id="tab-daily" class="tabview"><div class="section-heading top-gap"><div><span class="eyebrow dark">532 NGÀY THEO DÕI</span><h2>Thu nhập &amp; chi tiêu từng ngày</h2></div></div><div class="info-strip">Tài nguyên liên minh và xưởng được cộng sau khi hoàn thành hoạt động trong ngày. Các lượt sự kiện có thể mua rải trong tuần.</div><div class="panel table-panel"><div class="table-scroll"><table id="dailyTable"></table></div></div></section>
-          <section id="tab-months" class="tabview"><div class="section-heading top-gap"><div><span class="eyebrow dark">ĐỒNG BỘ LỊCH DƯƠNG</span><h2>Hạn mức và tồn kho từng tháng</h2></div></div><div class="panel table-panel"><div class="table-scroll"><table id="monthsTable"></table></div></div></section>
-          <section id="tab-boss" class="tabview"><div class="section-heading top-gap"><div><span class="eyebrow dark">CHỈ GHI NHẬN ĐIỂM CAO NHẤT</span><h2>Nhật ký boss thứ Hai</h2></div><span class="chip">Tối đa 20 lượt / tuần</span></div><div class="info-strip">Phần thưởng ước tính chỉ dựa trên sát thương tốt nhất của một tuần, không nhân 20 và không cộng 20 lượt. Nhấn <b>Sửa 20 lượt</b> để ghi nhận thực tế; sau đó nhấn <b>Tính kế hoạch</b>.</div><div class="panel table-panel"><div class="table-scroll"><table id="bossTable"></table></div></div></section>
-          <section id="tab-help" class="tabview"><div class="section-heading top-gap"><div><span class="eyebrow dark">HƯỚNG DẪN</span><h2>Cách dùng &amp; giả định tính toán</h2></div></div><div class="panel help-content">
-            <h3>1. Nhập dữ liệu của bạn</h3><p>Điền số đá tím và bạc hiện còn tại hết ngày 15/11/2026, số bạc và lượt vàng đã đổi trong tháng 11. Chọn sát thương boss mặc định hoặc mô hình tăng trưởng, rồi bấm <b>Tính kế hoạch</b>.</p>
-            <h3>2. Cập nhật boss thứ Hai</h3><p>Ở mục Boss, nhập điểm tốt nhất hoặc tối đa 20 lượt đánh. Ứng dụng lấy giá trị lớn nhất và tính số đá theo từng mốc sát thương hoàn chỉnh. Tuần chưa nhập được dự báo theo cấu hình.</p>
-            <h3>3. Theo dõi giao dịch</h3><p>Trong mục Đổi bạc / vàng, chế độ mặc định gộp mọi thao tác cùng ngày thành một dòng; nhấn xem chi tiết để kiểm tra các lượt mua. Lịch đổi bạc xét các ngày phù hợp trong tuần, nhất là thứ Hai, thứ Bảy, Chủ nhật và ranh giới tháng. Mỗi lần đổi bạc ít nhất 5.000 đá. Đá từ nhiệm vụ và xưởng được ghi nhận cuối ngày. Không bắt buộc thanh toán vào thứ Hai. Mọi sự kiện mở thứ Ba; Trường bắn phải hoàn thành chậm nhất thứ Bảy, ba sự kiện còn lại chậm nhất Chủ nhật. Thứ Hai được đánh boss và đổi bạc/vàng nhưng không được mua phần thưởng.</p>
-            <h3>4. Quy tắc tính toán</h3><p>Phân bổ tối ưu theo thứ tự: tối đa số sự kiện hoàn thành toàn bộ phần cốt lõi, tối đa số lượt cốt lõi, tối đa lượt Chợ bổ sung, tối đa lượt vàng; rồi ưu tiên Chợ sớm nhất theo thứ tự thời gian. Các lượt bắt buộc phải bỏ sẽ phân bổ về các Chợ muộn nhất có thể. Bộ giải dùng quy hoạch nguyên, không phải chia trung bình tháng. Lượt vàng được gom mua vào cuối tháng để vẫn hưởng hạn mức tháng đó.</p>
-            <h3>5. Dữ liệu và sao lưu</h3><p>Hồ sơ được lưu trong trình duyệt trên máy bạn. Nên định kỳ bấm <b>Sao lưu hồ sơ</b> để tải tệp JSON. Khi đổi máy hoặc đổi trình duyệt, dùng <b>Nhập hồ sơ JSON</b>. Lệnh Xuất CSV tạo ZIP gồm 10 bảng CSV. Bảng 04 gộp mỗi ngày giao dịch thành một dòng; bảng 09 giữ từng giao dịch để kiểm tra; bảng 08 giữ đủ 532 ngày thu chi. Có thể xuất XLSX trực tiếp và in PDF tiếng Anh hoặc tiếng Trung phồn thể bằng nút trên cùng (chọn Save as PDF trong trình duyệt).</p>
-            <h3>6. Lưu ý giới hạn</h3><p>Ứng dụng tính riêng khoảng 16/11/2026–30/04/2028. Tuần cuối mở Chợ lấp lánh ngày 25/04/2028 và đóng ngày Chủ nhật 30/04/2028; bao gồm đầy đủ ngày nhuận 29/02/2028. Nguồn đá dưới 1G hoặc trên 10G chưa có quy tắc đầy đủ; mô hình chỉ tính bậc đã cung cấp. Xưởng giả định thu đủ 147 đá mỗi 3 giờ, tổng 1.176 đá mỗi ngày.</p>
-            <p class="help-note">Phiên bản Android: Tối ưu offline bằng HiGHS WebAssembly trên điện thoại. Chaquopy và XlsxWriter chỉ sử dụng để xuất bảng Excel/CSV. Không cần Python server, tài khoản hay Internet khi sử dụng.</p>
-          </div></section>
-        </div>
-      </main>
-      <footer>◆ KHOÁNG THẠCH <span>·</span> Tối ưu tài nguyên game <span>·</span> Lưu trữ cục bộ</footer>
-    </div>
-  </div>
-  <div id="bossModal" class="modal-backdrop hidden"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="panel-head"><h3 id="modalTitle">Kết quả boss</h3><button id="bossModalClose" class="icon-button">×</button></div><p>Nhập tối đa 20 sát thương, đơn vị G, mỗi giá trị một dòng hoặc cách nhau bởi dấu chấm phẩy. Dấu thập phân dùng dấu chấm (ví dụ 5.82).</p><textarea id="bossHits" rows="9" placeholder="5.79&#10;5.82&#10;5.96"></textarea><div id="bossPreview" class="modal-preview"></div><div class="modal-buttons"><button id="bossClear" class="btn ghost">Xóa thực tế (dùng dự báo)</button><button id="bossSave" class="btn primary">Lưu kết quả boss</button></div></div></div>
-  <script src="./app.js"></script>
-</body>
-</html>
+<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Khoáng Thạch v7.0 · Dynamic Planner</title><link rel="stylesheet" href="./app.css"></head>
+<body><div class="app-frame">
+<aside class="sidebar"><div class="brand"><div class="brand-mark">◆</div><div><b data-t="brand">KHOÁNG THẠCH</b><small>RESOURCE PLANNER</small></div></div>
+<div class="sidebar-label" data-t="navigation">ĐIỀU HƯỚNG</div><nav class="nav">
+<button class="nav-btn active" data-tab="overview">◫ <span data-t="overview">Tổng quan</span></button>
+<button class="nav-btn" data-tab="weeks">▦ <span data-t="events">Lịch sự kiện</span></button>
+<button class="nav-btn" data-tab="transactions">↔ <span data-t="trades">Đổi bạc / vàng</span></button>
+<button class="nav-btn" data-tab="daily">▦ <span data-t="daily">Thu chi mỗi ngày</span></button>
+<button class="nav-btn" data-tab="months">▤ <span data-t="monthly">Theo tháng</span></button>
+<button class="nav-btn" data-tab="boss">✦ <span data-t="boss">Boss thạch anh</span></button>
+<button class="nav-btn" data-tab="plans">◷ <span data-t="plans">Kế hoạch đã lưu</span></button>
+<button class="nav-btn" data-tab="help">ⓘ <span data-t="help">Hướng dẫn</span></button>
+</nav><div class="aside-bottom"><div class="offline-dot"></div><span data-t="offline">Chạy cục bộ, không gửi dữ liệu trò chơi ra Internet</span></div></aside>
+<div class="workspace"><header class="topbar"><div class="breadcrumb">RESOURCE PLANNER / <strong id="currentSection" data-t="overview">Tổng quan</strong></div>
+<div class="top-actions"><label class="lang-picker"><span data-t="interfaceLanguage">Giao diện</span><select id="uiLanguage" aria-label="Interface language"><option value="vi">Tiếng Việt</option><option value="en">English</option><option value="zh-Hant">繁體中文</option><option value="ja">日本語</option></select></label>
+<label class="lang-picker"><span data-t="reportLanguage">Báo cáo</span><select id="reportLanguage" aria-label="Report language"><option value="vi">Tiếng Việt</option><option value="en">English</option><option value="zh-Hant">繁體中文</option><option value="ja">日本語</option></select></label>
+<button id="exportCsv" class="btn ghost" data-t="exportCsv">⇩ Xuất CSV</button><button id="exportExcel" class="btn ghost" data-t="exportExcel">⇩ Xuất Excel</button><button id="printPdf" class="btn ghost" data-t="printPdf">▣ In PDF</button><button id="exportJson" class="btn ghost" data-t="backup">⇩ Sao lưu JSON</button></div></header>
+<main><section class="hero"><div class="hero-copy"><span class="eyebrow" data-t="heroEyebrow">KẾ HOẠCH LINH HOẠT</span><h1 data-t="heroTitle">Lập kế hoạch từ tài nguyên thật.</h1><p data-t="heroDesc">Chọn ngày bắt đầu, ngày đích và số dư đầu ngày. Ứng dụng tối ưu phần thưởng cốt lõi, lượt Chợ lấp lánh và vàng; ưu tiên các Chợ sớm.</p><div class="period">◷ <span id="periodLabel">16/11/2026 → 30/04/2028</span> · <span id="periodLength">532</span> <span data-t="days">ngày</span></div></div><div class="hero-decoration" aria-hidden="true"><div class="gem g1"></div><div class="gem g2"></div><div class="gem g3"></div></div></section>
+<section class="setup-panel"><div class="section-heading"><div><span class="eyebrow dark" data-t="configuration">THIẾT LẬP</span><h2 data-t="profileState">Hồ sơ và tài nguyên đầu ngày</h2></div><div class="profile-controls"><select id="profiles" aria-label="Profile"></select><button id="profileAdd" title="Add profile">＋</button><button id="profileClone" title="Clone profile">⧉</button><button id="profileRename" title="Rename profile">✎</button><button id="profileDelete" title="Delete profile">×</button></div></div>
+<div class="info-strip" data-t="snapshotRule">Số dư được chốt ĐẦU NGÀY. Chưa cộng thưởng boss, liên minh hoặc xưởng của ngày được chọn; hạn mức đã dùng là của tháng bắt đầu.</div>
+<div class="form-grid">
+<label><span data-t="startDate">Ngày bắt đầu</span><input id="startDate" type="date" min="2026-11-16" value="2026-11-16"><small data-t="startHint">Đầu ngày, chưa nhận thu nhập hôm nay</small></label>
+<label><span data-t="endDate">Ngày kết thúc</span><input id="endDate" type="date" min="2026-11-16" value="2028-04-30"><small data-t="endHint">Tùy chọn ngày đích, tối đa 10 năm</small></label>
+<label><span data-t="quartzNow">Đá tím đang có</span><input id="initialQuartz" inputmode="numeric" type="number" step="1" min="0" value="9052"><small data-t="balanceNow">Số dư thực tế đầu ngày</small></label>
+<label><span data-t="silverNow">Bạc đang có</span><input id="initialSilver" inputmode="numeric" type="number" step="1" min="0" value="0"><small data-t="silverCarry">Có thể gồm bạc tích lũy tháng trước</small></label>
+<label><span data-t="silverUsed">Bạc đã đổi trong tháng bắt đầu</span><input id="silverNov" type="number" step="1" min="0" max="250000" value="70000"><small data-t="silverLimit">Hạn mức mỗi tháng: 250.000</small></label>
+<label><span data-t="goldUsed">Lượt đổi vàng đã dùng tháng này</span><input id="goldNov" type="number" step="1" min="0" max="24" value="6"><small data-t="goldLimit">Tối đa 24 lượt/tháng</small></label>
+<label><span data-t="corePast">Cốt lõi đã mua trong sự kiện đang diễn ra</span><input id="ongoingCore" type="number" step="1" min="0" value="0"><small data-t="corePastHint">Chỉ nhập nếu sự kiện bắt đầu trước ngày chốt</small></label>
+<label><span data-t="bonusPast">Lượt Chợ thêm đã mua trong sự kiện này</span><input id="ongoingBonus" type="number" step="1" min="0" max="15" value="0"><small data-t="bonusPastHint">Chỉ dành cho Chợ đang diễn ra</small></label>
+<label><span data-t="bossDamage">Sát thương boss tốt nhất (G)</span><input id="damage" type="number" min="0" max="10" step="0.001" value="5.82"><small data-t="bossHint">Giá trị cao nhất của tối đa 20 lượt</small></label>
+<label><span data-t="forecastMode">Chế độ dự báo</span><select id="mode"><option value="fixed" data-t="fixed">Cố định</option><option value="growth" data-t="growthMode">Tăng theo tháng</option><option value="manual" data-t="manual">Theo từng tuần</option></select></label>
+<label><span data-t="growth">Tăng trưởng boss mỗi tháng (G)</span><input id="growth" type="number" step="0.01" min="-1" max="1" value="0.04"></label>
+<label><span data-t="purchaseTiming">Thời điểm mua trong sự kiện</span><select id="completionMode"><option value="auto" data-t="buyAuto">Ưu tiên thứ Bảy</option><option value="early" data-t="buyEarly">Mua sớm nhất</option><option value="sunday" data-t="buyLast">Ngày cuối sự kiện</option></select></label>
+<div class="calculate-wrap"><button id="calculate" class="btn primary" data-t="calculate">✧ TÍNH KẾ HOẠCH</button><span class="calculation-hint" data-t="priority">Cốt lõi → lượt Chợ → vàng → Chợ sớm</span></div>
+</div><div class="action-row"><button id="importJson" class="text-btn" data-t="import">⇧ Nhập hồ sơ JSON</button><input type="file" id="jsonFile" accept=".json,application/json" hidden><button id="saveSnapshot" class="btn ghost" data-t="saveSnapshot">◷ Lưu kế hoạch hiện tại</button><span id="saveStatus" class="save-status" data-t="savedLocally">Hồ sơ được lưu cục bộ</span></div></section>
+<div id="notice" class="notice hidden" role="status"></div><div id="loading" class="loading hidden"><span class="spinner"></span><span data-t="calculating">Đang tính và đối soát giao dịch...</span></div>
+<div id="output" class="output hidden"><div class="year-filter-bar"><label data-t="yearFilter">Lọc theo năm</label><select id="yearFilter"><option value="all" data-t="allYears">Toàn kỳ</option></select><small data-t="filterOnly">Chỉ lọc hiển thị; KPI tính toàn kỳ</small></div>
+<section id="tab-overview" class="tabview active"><div class="section-heading top-gap"><div><span class="eyebrow dark" data-t="optimalResult">KẾT QUẢ TỐI ƯU</span><h2 data-t="overview">Tổng quan</h2></div><span id="referenceBadge" class="chip">Boss</span></div><div id="kpiCards" class="kpi-grid"></div>
+<div class="two-columns"><article class="panel chart-panel"><div class="panel-head"><h3 data-t="quartzChart">Đá tím cuối mỗi tháng</h3></div><div id="quartzChart" class="chart"></div></article><article class="panel chart-panel"><div class="panel-head"><h3 data-t="goldChart">Vàng mua mỗi tháng</h3></div><div id="goldChart" class="chart"></div></article></div><div class="info-strip" data-t="priorityHelp">Các cấp ưu tiên được khóa theo thứ tự; chỉ sau đó mới ưu tiên Chợ diễn ra sớm hơn.</div></section>
+<section id="tab-weeks" class="tabview"><div class="section-heading top-gap"><h2 data-t="events">Lịch sự kiện</h2></div><div class="panel table-panel"><div class="table-scroll"><table id="weeksTable"></table></div></div></section>
+<section id="tab-transactions" class="tabview"><div class="section-heading top-gap"><h2 data-t="trades">Đổi bạc / vàng</h2><span id="txCount" class="chip subtle"></span></div><div class="tx-toolbar"><label><span data-t="viewMode">Chế độ xem</span><select id="txView"><option value="summary" data-t="byDay">Gộp theo ngày</option><option value="detail" data-t="details">Từng giao dịch</option></select></label><label><span data-t="tradeFilter">Lọc giao dịch</span><select id="txFilter"><option value="all" data-t="all">Tất cả</option><option value="silver" data-t="silverOnly">Đổi bạc</option><option value="gold" data-t="goldOnly">Mua vàng</option><option value="events" data-t="eventOnly">Mua sự kiện</option></select></label></div><div class="panel table-panel"><div class="table-scroll"><table id="txTable"></table></div></div></section>
+<section id="tab-daily" class="tabview"><div class="section-heading top-gap"><h2 data-t="daily">Thu chi mỗi ngày</h2></div><div class="panel table-panel"><div class="table-scroll"><table id="dailyTable"></table></div></div></section>
+<section id="tab-months" class="tabview"><div class="section-heading top-gap"><h2 data-t="monthly">Theo tháng</h2></div><div class="panel table-panel"><div class="table-scroll"><table id="monthsTable"></table></div></div></section>
+<section id="tab-boss" class="tabview"><div class="section-heading top-gap"><h2 data-t="boss">Boss thạch anh</h2><span class="chip" data-t="twentyHits">Tối đa 20 lượt/tuần</span></div><div class="panel table-panel"><div class="table-scroll"><table id="bossTable"></table></div></div></section>
+<section id="tab-plans" class="tabview"><div class="section-heading top-gap"><h2 data-t="plans">Kế hoạch đã lưu</h2></div><div class="panel"><p data-t="plansHelp">Lưu trạng thái riêng cho từng hồ sơ; khôi phục kế hoạch cũ hoặc so sánh hai lần tính.</p><div class="snapshot-picker"><select id="snapshotA"></select><select id="snapshotB"></select><button id="comparePlans" class="btn ghost" data-t="compare">So sánh</button></div><div id="planComparison"></div><div class="table-scroll"><table id="snapshotsTable"></table></div></div></section>
+<section id="tab-help" class="tabview"><div class="section-heading top-gap"><h2 data-t="help">Hướng dẫn</h2></div><article class="panel help-content"><h3 data-t="help1">1. Chốt số dư đầu ngày</h3><p data-t="help1p">Nhập số đá tím, bạc thực có vào đầu ngày bắt đầu. Số dư chưa chứa thưởng boss, liên minh và 8 lần xưởng của chính ngày đó. Nhập hạn mức bạc và lượt đổi vàng đã dùng từ đầu tháng đến hết ngày hôm trước.</p>
+<h3 data-t="help2">2. Sự kiện đang diễn ra</h3><p data-t="help2p">Nếu đã mua phần thưởng trước ngày bắt đầu kế hoạch, nhập số lượt cốt lõi và lượt Chợ đã mua. Ứng dụng tính các lượt còn lại, không trừ chi phí đã chi trước mốc số dư.</p>
+<h3 data-t="help3">3. Ngày đích và sự kiện</h3><p data-t="help3p">Ngày kết thúc có tính cả ngày đó. Những sự kiện đang diễn ra chỉ có thể mua trước ngày đích; không giả định được nhận những phần thưởng đã kết thúc trước ngày bắt đầu. Quy tắc vòng sự kiện tính theo mốc 16/11/2026.</p>
+<h3 data-t="help4">4. Giới hạn kế hoạch</h3><p data-t="help4p">Để bảo vệ hiệu năng trên điện thoại, một kế hoạch dài tối đa 10 năm. Giả định xưởng thu đủ 147 đá mỗi 3 giờ (1.176/ngày) và thu nhập ngày được ghi nhận trước giao dịch cùng ngày. Nếu chỉ nhận một phần sản lượng thì cần điều chỉnh số dư thực tế ở ngày cập nhật tiếp theo.</p>
+<h3 data-t="help5">5. Sao lưu và bảo mật</h3><p data-t="help5p">Dữ liệu lưu cục bộ, có thể xuất/nhập JSON; chỉ tải tệp WebAssembly từ gói cài đặt đã đóng gói, không gửi hồ sơ lên Internet. Tải CSV, Excel hoặc in PDF với ngôn ngữ báo cáo riêng.</p></article></section>
+</div></main><footer data-t="footer">◆ KHOÁNG THẠCH · Tối ưu tài nguyên · Lưu trữ cục bộ</footer></div></div>
+<div id="bossModal" class="modal-backdrop hidden"><div class="modal" role="dialog" aria-modal="true"><div class="panel-head"><h3 id="modalTitle" data-t="bossResult">Kết quả boss</h3><button id="bossModalClose" class="icon-button">×</button></div><p data-t="bossModalHelp">Nhập tối đa 20 lượt sát thương (G), cách nhau bằng xuống dòng hoặc dấu chấm phẩy. Dấu thập phân dùng dấu chấm.</p><textarea id="bossHits" rows="8" placeholder="5.79&#10;5.82&#10;5.96"></textarea><div id="bossPreview" class="modal-preview"></div><div class="modal-buttons"><button id="bossClear" class="btn ghost" data-t="clearBoss">Xóa thực tế</button><button id="bossSave" class="btn primary" data-t="saveBoss">Lưu boss</button></div></div></div>
+<script src="./i18n.js"></script><script src="./app.js"></script></body></html>
