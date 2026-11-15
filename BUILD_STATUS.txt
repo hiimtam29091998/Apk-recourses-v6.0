@@ -1,0 +1,8 @@
+KHOANG THACH MOBILE
+Da tao: Android Studio source project (KHONG PHAI APK)
+Binh thuong: APK debug duoc tao boi Android Studio -> Build APK(s)
+Ly do chua co APK trong ket qua: moi truong khong co Android SDK/Gradle; khong co Internet de tai bo cong cu.
+Kiem thu Python/SciPy goc: 23/23
+Kiem thu bridge Python: 5/5
+Android app build: CHUA THUC HIEN
+Samsung Galaxy S23 Ultra: CHUA KIEM THU TREN MAY THAT

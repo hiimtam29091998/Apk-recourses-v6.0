@@ -1,0 +1,60 @@
+name: Build Khoang Thach Android APK (HiGHS WASM)
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: android-actions/setup-android@v4
+      - name: Install Android SDK 35
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+      - name: Package HiGHS WebAssembly for fully offline runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm pack highs@1.15.4 --silent
+          tar -xzf highs-1.15.4.tgz package/build/highs.js package/build/highs.wasm
+          cp package/build/highs.js app/src/main/assets/highs.js
+          cp package/build/highs.wasm app/src/main/assets/highs.wasm
+          test -s app/src/main/assets/highs.js
+          test -s app/src/main/assets/highs.wasm
+          node --check app/src/main/assets/optimizer.js
+          node --check app/src/main/assets/solver-worker.js
+          node --check app/src/main/assets/app.js
+      - name: Test actual HiGHS WASM on Node.js
+        run: node tests/test_highs_wasm_node.cjs
+      - name: Verify Python export modules
+        run: |
+          python -m compileall -q app/src/main/python
+          python -m pip install --quiet xlsxwriter
+          python tests/test_export_schema.py
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Build debug APK (arm64 Android, without SciPy)
+        run: gradle --no-daemon --stacktrace assembleDebug
+      - name: Check APK generated
+        run: |
+          test -s app/build/outputs/apk/debug/app-debug.apk
+          ls -lh app/build/outputs/apk/debug/app-debug.apk
+      - name: Upload installable APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Khoang-Thach-Mobile-HiGHS-WASM-APK
+          path: app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error

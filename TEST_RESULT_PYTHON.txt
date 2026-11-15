@@ -1,0 +1,10 @@
+test_boss_rewards (__main__.BridgeContract.test_boss_rewards) ... ok
+test_csv_zip_export (__main__.BridgeContract.test_csv_zip_export) ... ok
+test_excel_export (__main__.BridgeContract.test_excel_export) ... ok
+test_identical_python_optimizer (__main__.BridgeContract.test_identical_python_optimizer) ... ok
+test_milp_results (__main__.BridgeContract.test_milp_results) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 5.047s
+
+OK

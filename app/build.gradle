@@ -1,0 +1,36 @@
+plugins {
+    id 'com.android.application'
+    id 'com.chaquo.python'
+}
+
+android {
+    namespace 'com.khoangthach.mobile'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'com.khoangthach.mobile'
+        minSdk 26
+        targetSdk 34
+        versionCode 2
+        versionName '6.0.0-wasm-beta'
+        ndk { abiFilters 'arm64-v8a' }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    buildTypes {
+        release { minifyEnabled false }
+        debug { minifyEnabled false }
+    }
+}
+
+chaquopy {
+    defaultConfig {
+        version = '3.11'
+        pip {
+            // Only pure-Python reporting; optimizer runs in HiGHS WebAssembly.
+            install 'xlsxwriter'
+        }
+    }
+}

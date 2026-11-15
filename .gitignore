@@ -1,0 +1,14 @@
+.gradle/
+.idea/
+build/
+app/build/
+local.properties
+*.iml
+.DS_Store
+
+# Test output and packaging artifacts
+tests/example_js_result.json
+*.tgz
+package/
+app/src/main/assets/highs.js
+app/src/main/assets/highs.wasm
